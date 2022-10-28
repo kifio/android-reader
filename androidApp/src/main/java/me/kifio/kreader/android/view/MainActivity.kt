@@ -1,8 +1,6 @@
-package me.kifio.kreader.android
+package me.kifio.kreader.android.view
 
-import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,13 +13,9 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import me.kifio.kreader.presentation.BookshelfViewModel
 
@@ -76,6 +70,10 @@ class MainActivity : ComponentActivity() {
 
     private val bookShelfVM: BookshelfViewModel by viewModels()
 
+    private val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { bookShelfVM.saveBookToLocalStorage(this, it) }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -99,10 +97,6 @@ class MainActivity : ComponentActivity() {
 //        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
 //            addCategory(Intent.CATEGORY_OPENABLE)
 //        }
-
-        val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            uri?.let { bookShelfVM.saveBookToLocalStorage(this, it) }
-        }
 
         getContent.launch("application/*")
     }

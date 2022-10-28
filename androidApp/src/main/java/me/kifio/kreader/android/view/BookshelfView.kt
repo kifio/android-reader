@@ -1,8 +1,6 @@
-package me.kifio.kreader.android
+package me.kifio.kreader.android.view
 
-import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,7 +18,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
-import me.kifio.kreader.model.Book
+import me.kifio.kreader.android.R
+import me.kifio.kreader.model.BookEntity
 import me.kifio.kreader.presentation.BookshelfViewModel
 import java.io.File
 
@@ -86,7 +85,7 @@ fun Content(ctx: Context, viewModel: BookshelfViewModel) {
 
 @OptIn(ExperimentalUnitApi::class)
 @Composable
-fun BookItem(ctx: Context, book: Book, cover: Bitmap) {
+fun BookItem(ctx: Context, book: BookEntity, cover: Bitmap) {
     val configuration = LocalConfiguration.current
 
     val screenHeight = configuration.screenHeightDp.dp
@@ -133,7 +132,7 @@ fun BookItem(ctx: Context, book: Book, cover: Bitmap) {
     }
 }
 
-private fun openBook(ctx: Context, book: Book) {
+private fun openBook(ctx: Context, book: BookEntity) {
     val file = File(ctx.filesDir, book.title + "." + book.format.name.lowercase())
 
 //    if (!file.exists()) {

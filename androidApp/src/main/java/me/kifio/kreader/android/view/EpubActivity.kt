@@ -1,4 +1,4 @@
-package me.kifio.kreader.android
+package me.kifio.kreader.android.view
 
 import androidx.appcompat.app.AppCompatActivity
 
