@@ -1,4 +1,4 @@
-package me.kifio.kreader.android.view
+package me.kifio.kreader.presentation
 
 import android.content.Intent
 import android.os.Bundle
@@ -17,7 +17,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import me.kifio.kreader.presentation.BookshelfViewModel
+import me.kifio.kreader.model.BookRepository
+import me.kifio.kreader.model.db.BookDatabase
 
 @Composable
 fun MyApplicationTheme(
@@ -70,9 +71,10 @@ class MainActivity : ComponentActivity() {
 
     private val bookShelfVM: BookshelfViewModel by viewModels()
 
-    private val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let { bookShelfVM.saveBookToLocalStorage(this, it) }
-    }
+    private val getContent =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let { bookShelfVM.saveBookToLocalStorage(this, it) }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,6 +82,7 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         bookShelfVM.setup(this)
+        bookShelfVM.loadBooks()
 
         setContent {
             MyApplicationTheme {
@@ -93,17 +96,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun openFilePicker() {
-//        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-//            addCategory(Intent.CATEGORY_OPENABLE)
-//        }
-
-        getContent.launch("application/*")
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-    }
+    private fun openFilePicker() = getContent.launch("application/*")
 }
 
 @Preview

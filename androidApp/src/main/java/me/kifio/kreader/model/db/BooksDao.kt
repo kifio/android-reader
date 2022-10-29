@@ -7,7 +7,7 @@
 package me.kifio.kreader.model.db
 
 import androidx.room.*
-import me.kifio.kreader.model.BookEntity
+import me.kifio.kreader.model.entity.BookEntity
 import me.kifio.kreader.model.entity.Constants
 
 @Dao

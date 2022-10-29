@@ -7,25 +7,25 @@
 package me.kifio.kreader.model
 
 import me.kifio.kreader.model.db.BooksDao
+import me.kifio.kreader.model.entity.BookEntity
+import me.kifio.kreader.toBookFormat
+import org.readium.r2.shared.publication.Publication
 
 class BookRepository(private val booksDao: BooksDao) {
 
-    fun books() = booksDao.getAllBooks()
+    fun getAllBooks() = booksDao.getAllBooks()
 
     fun get(id: Long) = booksDao.get(id)
-//
-//    suspend fun insertBook(href: String, mediaType: MediaType, publication: Publication): Long {
-//        val book = Book(
-//            creation = DateTime().toDate().time,
-//            title = publication.metadata.title,
-//            author = publication.metadata.authorName,
-//            href = href,
-//            identifier = publication.metadata.identifier ?: "",
-//            type = mediaType.toString(),
-//            progression = "{}"
-//        )
-//        return booksDao.insertBook(book)
-//    }
+
+    @Throws(java.lang.IllegalArgumentException::class)
+    fun insertBook(publication: Publication, extension: String, coverPath: String?): Long {
+        return booksDao.insertBook(BookEntity(
+            title = publication.metadata.title,
+            author = publication.metadata.authors.firstOrNull()?.name ?: "",
+            format = extension.toBookFormat() ?: throw IllegalArgumentException("Неподдерживаемый формат"),
+            coverPath = coverPath
+        ))
+    }
 //
 //    suspend fun deleteBook(id: Long) = booksDao.deleteBook(id)
 //

@@ -1,4 +1,4 @@
-package me.kifio.kreader.android.view
+package me.kifio.kreader.presentation
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -16,48 +16,55 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import me.kifio.kreader.android.R
-import me.kifio.kreader.model.BookEntity
-import me.kifio.kreader.presentation.BookshelfViewModel
+import me.kifio.kreader.model.entity.BookEntity
 import java.io.File
 
 @Composable
-fun BookshelfView(ctx: Context, viewModel: BookshelfViewModel, openFilePicker: () -> Unit) = Scaffold(
-    topBar = {
-        TopAppBar(
-            modifier = Modifier
-                .height(WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 56.dp),
-            title = { AppBarTitle(viewModel) },
-            actions = {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_add_circle_outline_24),
-                    contentDescription = "",
-                    modifier = Modifier
-                        .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
-                        .clickable(onClick = openFilePicker),
-                )
-            }
-        )
-    },
-    bottomBar = {
-        BottomNavigation(
-            modifier = Modifier
-                .height(
-                    WindowInsets.navigationBars
-                        .asPaddingValues()
-                        .calculateBottomPadding() + 56.dp
-                )
-                .background(color = Color.Green),
-        ) {
+fun BookshelfView(ctx: Context, viewModel: BookshelfViewModel, openFilePicker: () -> Unit) =
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                modifier = Modifier
+                    .height(
+                        WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 56.dp
+                    ),
+                title = { AppBarTitle(viewModel) },
+                actions = {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_add_circle_outline_24),
+                        contentDescription = "",
+                        modifier = Modifier
+                            .padding(
+                                top = WindowInsets.statusBars
+                                    .asPaddingValues()
+                                    .calculateTopPadding()
+                            )
+                            .clickable(onClick = openFilePicker),
+                    )
+                }
+            )
+        },
+        bottomBar = {
+            BottomNavigation(
+                modifier = Modifier
+                    .height(
+                        WindowInsets.navigationBars
+                            .asPaddingValues()
+                            .calculateBottomPadding() + 56.dp
+                    )
+                    .background(color = Color.Green),
+            ) {
 
+            }
+        },
+        content = {
+            Content(ctx, viewModel)
         }
-    },
-    content = {
-        Content(ctx, viewModel)
-    }
-)
+    )
 
 @Composable
 fun AppBarTitle(viewModel: BookshelfViewModel) {
@@ -73,13 +80,31 @@ fun AppBarTitle(viewModel: BookshelfViewModel) {
 @Composable
 fun Content(ctx: Context, viewModel: BookshelfViewModel) {
     val booksData = viewModel.shelfState
+
+    when (booksData != null) {
+        true -> BookshelfContent(ctx = ctx, booksData = booksData)
+        false -> ProgressBar()
+    }
+}
+
+@Composable
+fun BookshelfContent(ctx: Context, booksData: List<Book>) {
     LazyColumn(
 
     ) {
-        val books = booksData.keys.toList().sortedBy { it.id }
         items(booksData.size) { index ->
-            BookItem(ctx = ctx, book = books[index], cover = booksData[books[index]]!!)
+            BookItem(ctx = ctx, book = booksData[index].entity, cover = booksData[index].cover)
         }
+    }
+}
+
+@Composable
+fun ProgressBar() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
     }
 }
 

@@ -1,16 +1,9 @@
-/*
- * Copyright 2021 Readium Foundation. All rights reserved.
- * Use of this source code is governed by the BSD-style license
- * available in the top-level LICENSE file of the project.
- */
-
 package me.kifio.kreader.model.db
 
 import android.content.Context
-import androidx.room.Database
-import androidx.room.Room
-import androidx.room.RoomDatabase
-import me.kifio.kreader.model.BookEntity
+import androidx.room.*
+import me.kifio.kreader.model.entity.BookEntity
+import me.kifio.kreader.model.entity.BookFormat
 
 @Database(
     entities = [BookEntity::class],
@@ -36,10 +29,26 @@ abstract class BookDatabase : RoomDatabase() {
                     context.applicationContext,
                     BookDatabase::class.java,
                     "app_database"
-                ).build()
+                )
+                    .addTypeConverter(BookFormatConverter::class).build()
                 INSTANCE = instance
                 return instance
             }
         }
     }
+}
+
+@ProvidedTypeConverter
+class BookFormatConverter {
+
+    @TypeConverter
+    fun fromBookFormat(format: BookFormat): String {
+        return format.name
+    }
+
+    @TypeConverter
+    fun toBookFormat(formatString: String): BookFormat {
+        return BookFormat.valueOf(formatString)
+    }
+
 }
