@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
         android:allowBackup="false"
         android:supportsRtl="true"
+        android:name=".Application"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/AppTheme">
+
         <activity
-            android:name="me.kifio.kreader.presentation.MainActivity"
+            android:name=".presentation.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -18,17 +24,6 @@
             android:name=".reader.ReaderActivity"
             android:label="Reader"
             android:exported="true"/>
-
-<!--        <service android:name=".MediaService"-->
-<!--            android:enabled="true"-->
-<!--            android:exported="true"-->
-<!--            tools:ignore="ExportedService">-->
-
-<!--            <intent-filter>-->
-<!--                <action android:name="androidx.media2.session.MediaSessionService" />-->
-<!--            </intent-filter>-->
-<!--        </service>-->
-
 
     </application>
 </manifest> 

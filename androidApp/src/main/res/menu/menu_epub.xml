@@ -23,14 +23,6 @@
         app:showAsAction="collapseActionView|always" />
 
     <item
-        android:id="@+id/screen_reader"
-        android:icon="@drawable/ic_baseline_headphones_24"
-        android:title="@string/epubactivity_read_aloud_start"
-        android:orderInCategory="30"
-        app:showAsAction="always"
-        tools:ignore="AlwaysShowAction"/>
-
-    <item
         android:id="@+id/settings"
         android:icon="@drawable/ic_outline_format_size_24"
         android:title="@string/epubactivity_settings"

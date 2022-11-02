@@ -10,7 +10,7 @@ android {
     compileSdk = 33
     defaultConfig {
         applicationId = "me.kifio.kreader.android"
-        minSdk = 23
+        minSdk = 26
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
@@ -57,6 +57,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:$coil_version")
     implementation("io.coil-kt:coil:$coil_version")
     implementation("androidx.navigation:navigation-fragment-ktx:$nav_version")
+    implementation("com.google.android.material:material:1.7.0")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
     implementation("com.github.readium.kotlin-toolkit:readium-shared:$readium_version")
