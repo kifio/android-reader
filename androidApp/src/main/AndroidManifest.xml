@@ -15,10 +15,20 @@
         </activity>
 
         <activity
-            android:name="me.kifio.kreader.presentation.EpubActivity"
-            android:exported="false"
-            android:theme="@style/AppTheme">
-        </activity>
+            android:name=".reader.ReaderActivity"
+            android:label="Reader"
+            android:exported="true"/>
+
+<!--        <service android:name=".MediaService"-->
+<!--            android:enabled="true"-->
+<!--            android:exported="true"-->
+<!--            tools:ignore="ExportedService">-->
+
+<!--            <intent-filter>-->
+<!--                <action android:name="androidx.media2.session.MediaSessionService" />-->
+<!--            </intent-filter>-->
+<!--        </service>-->
+
 
     </application>
 </manifest> 

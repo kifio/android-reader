@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -17,8 +18,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import me.kifio.kreader.model.BookRepository
-import me.kifio.kreader.model.db.BookDatabase
+import me.kifio.kreader.bookshelf.BookshelfView
+import me.kifio.kreader.bookshelf.BookshelfViewModel
+import me.kifio.kreader.reader.ReaderActivityContract
+import org.readium.r2.shared.extensions.tryOrLog
 
 @Composable
 fun MyApplicationTheme(
@@ -76,6 +79,11 @@ class MainActivity : ComponentActivity() {
             uri?.let { bookShelfVM.saveBookToLocalStorage(this, it) }
         }
 
+    private val readerLauncher: ActivityResultLauncher<ReaderActivityContract.Arguments> =
+        registerForActivityResult(ReaderActivityContract()) { input ->
+            input?.let { tryOrLog { bookShelfVM.closeBook(input.bookId) } }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -90,13 +98,15 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    BookshelfView(this, bookShelfVM, ::openFilePicker)
+                    BookshelfView(this, bookShelfVM, ::openFilePicker, ::openBook)
                 }
             }
         }
     }
 
     private fun openFilePicker() = getContent.launch("application/*")
+
+    private fun openBook(bookId: Long) = readerLauncher.launch(ReaderActivityContract.Arguments(bookId))
 }
 
 @Preview

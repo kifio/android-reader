@@ -16,4 +16,27 @@
         </item>
 
     </style>
+
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:popupAnimationStyle">@null</item>
+
+    </style>
+
+    <style name="TabWidgetTheme" parent="AppTheme">
+        <item name="android:textSize">10sp</item>
+        <item name="android:textAlignment">center</item>
+    </style>
+
+    <style name="Widget.App.FloatingActionButton" parent="Widget.MaterialComponents.FloatingActionButton">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.App.FloatingActionButton</item>
+    </style>
+
+    <style name="ThemeOverlay.App.FloatingActionButton" parent="">
+        <item name="colorSecondary">@color/colorPrimary</item>
+        <item name="colorOnSecondary">@android:color/white</item>
+        <item name="colorOnSurface">@color/colorPrimary</item>
+    </style>
 </resources>
