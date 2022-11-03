@@ -18,9 +18,9 @@ import java.nio.file.Paths
 
 @Entity(tableName = Book.TABLE_NAME)
 data class Book(
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = ID)
-    var id: Long? = null,
+    var id: Long = 0L,
     @ColumnInfo(name = Bookmark.CREATION_DATE, defaultValue = "CURRENT_TIMESTAMP")
     val creation: Long? = null,
     @ColumnInfo(name = HREF)

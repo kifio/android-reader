@@ -6,8 +6,8 @@
 
 package me.kifio.kreader.android.reader
 
-import android.app.Activity
 import android.app.Application
+import android.content.Context
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.json.JSONObject
 import org.readium.navigator.media2.ExperimentalMedia2
@@ -46,7 +46,7 @@ class ReaderRepository(
     operator fun get(bookId: Long): ReaderInitData? =
         repository[bookId]
 
-    suspend fun open(bookId: Long, activity: Activity): Try<Unit, Exception> {
+    suspend fun open(bookId: Long, activity: Context): Try<Unit, Exception> {
         return try {
             openThrowing(bookId, activity)
             Try.success(Unit)
@@ -55,7 +55,7 @@ class ReaderRepository(
         }
     }
 
-    private suspend fun openThrowing(bookId: Long, activity: Activity) {
+    private suspend fun openThrowing(bookId: Long, context: Context) {
         if (bookId in repository.keys) {
             return
         }
@@ -67,7 +67,7 @@ class ReaderRepository(
         require(file.exists())
         val asset = FileAsset(file)
 
-        val publication = streamer.open(asset, allowUserInteraction = true, sender = activity)
+        val publication = streamer.open(asset, allowUserInteraction = true, sender = context)
             .getOrThrow()
 
         // The publication is protected with a DRM and not unlocked.

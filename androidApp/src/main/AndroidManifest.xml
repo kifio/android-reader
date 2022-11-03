@@ -22,7 +22,7 @@
 
         <activity
             android:name=".reader.ReaderActivity"
-            android:label="Reader"
+            android:theme="@style/AppTheme"
             android:exported="true"/>
 
     </application>

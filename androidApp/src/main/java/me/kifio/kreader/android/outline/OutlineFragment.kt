@@ -43,7 +43,7 @@ class OutlineFragment : Fragment() {
         childFragmentManager.setFragmentResultListener(
             OutlineContract.REQUEST_KEY,
             this,
-            FragmentResultListener { requestKey, bundle -> setFragmentResult(requestKey, bundle) }
+            { requestKey, bundle -> setFragmentResult(requestKey, bundle) }
         )
     }
 

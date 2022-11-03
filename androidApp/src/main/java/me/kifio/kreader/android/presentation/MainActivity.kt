@@ -80,7 +80,7 @@ class MainActivity : ComponentActivity() {
 
     private val readerLauncher: ActivityResultLauncher<ReaderActivityContract.Arguments> =
         registerForActivityResult(ReaderActivityContract()) { input ->
-            input?.let { tryOrLog { bookShelfVM.closeBook(input.bookId) } }
+            input?.let { tryOrLog { bookShelfVM.closeBook(this, input.bookId) } }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -20,7 +20,7 @@ android {
         viewBinding = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.3.0"
+        kotlinCompilerExtensionVersion = "1.1.0"
     }
     packagingOptions {
         resources {
@@ -67,8 +67,9 @@ dependencies {
     implementation("com.github.readium.kotlin-toolkit:readium-opds:$readium_version")
     implementation("com.github.readium.kotlin-toolkit:readium-lcp:$readium_version")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
-
     kapt("androidx.room:room-compiler:$room_version")
 }

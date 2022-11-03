@@ -81,18 +81,18 @@ fun AppBarTitle(viewModel: BookshelfViewModel) {
 fun Content(ctx: Context, viewModel: BookshelfViewModel, openBook: (Long) -> Unit) {
     val books = viewModel.shelfState
     when (books != null) {
-        true -> BookshelfContent(ctx = ctx, books = books, openBook = openBook)
+        true -> BookshelfContent(ctx = ctx, books = books, viewModel = viewModel, openBook = openBook)
         false -> ProgressBar()
     }
 }
 
 @Composable
-fun BookshelfContent(ctx: Context, books: List<Book>, openBook: (Long) -> Unit) {
+fun BookshelfContent(ctx: Context, books: List<Book>, viewModel: BookshelfViewModel, openBook: (Long) -> Unit) {
     LazyColumn(
 
     ) {
         items(books.size) { index ->
-            BookItem(ctx = ctx, book = books[index], openBook = openBook)
+            BookItem(ctx = ctx, book = books[index], viewModel = viewModel, openBook = openBook)
         }
     }
 }
@@ -109,7 +109,7 @@ fun ProgressBar() {
 
 @OptIn(ExperimentalUnitApi::class)
 @Composable
-fun BookItem(ctx: Context, book: Book, openBook: (Long) -> Unit) {
+fun BookItem(ctx: Context, book: Book, viewModel: BookshelfViewModel, openBook: (Long) -> Unit) {
     val configuration = LocalConfiguration.current
 
     val screenHeight = configuration.screenHeightDp.dp
@@ -118,9 +118,7 @@ fun BookItem(ctx: Context, book: Book, openBook: (Long) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = {
-                book.id?.let(openBook)
-            })
+            .clickable(onClick = { viewModel.openBook(ctx, book) { openBook(it) } })
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Top,

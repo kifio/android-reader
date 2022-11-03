@@ -1,5 +1,6 @@
 package me.kifio.kreader.android.bookshelf
 
+import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
@@ -10,27 +11,43 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.kifio.kreader.android.Application
 import me.kifio.kreader.android.db.BookDatabase
 import me.kifio.kreader.android.model.Book
+import me.kifio.kreader.android.reader.ReaderActivityContract
+import me.kifio.kreader.android.reader.ReaderInitData
+import me.kifio.kreader.android.reader.ReaderRepository
+import me.kifio.kreader.android.reader.VisualReaderInitData
 import me.kifio.kreader.android.utils.extensions.copyToLocalFile
 import me.kifio.kreader.android.utils.extensions.screenWidth
+import org.json.JSONObject
 import org.readium.r2.lcp.LcpService
+import org.readium.r2.shared.Injectable
+import org.readium.r2.shared.UserException
 import org.readium.r2.shared.extensions.mediaType
 import org.readium.r2.shared.extensions.tryOrNull
+import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
 import org.readium.r2.shared.publication.asset.FileAsset
 import org.readium.r2.shared.publication.services.coverFitting
+import org.readium.r2.shared.publication.services.isRestricted
+import org.readium.r2.shared.publication.services.protectionError
+import org.readium.r2.shared.util.Try
 import org.readium.r2.streamer.Streamer
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.net.URL
 
 sealed class BookShelfError {
     object BookNotAddedError : BookShelfError()
     object FileNotCreatedError : BookShelfError()
-    object BookCannotBeOpenedError : BookShelfError()
+    object BookAlreadyOpenedError : BookShelfError()
+    object FileNotFoundError : BookShelfError()
+    object PublicationOpeningError : BookShelfError()
 }
 
 class BookshelfViewModel : ViewModel() {
@@ -46,22 +63,13 @@ class BookshelfViewModel : ViewModel() {
 
     fun setup(ctx: Context) {
         viewModelScope.launch(context = Dispatchers.IO) {
-
-            booksRepository = BookDatabase.getDatabase(ctx).booksDao()
-                .let { BookRepository(it) }
-
-            streamer = Streamer(
-                ctx,
-                contentProtections = listOfNotNull(
-                    LcpService(ctx)?.contentProtection()
-                )
-            )
-
-            loadBooks(ctx)
+            booksRepository = (ctx.applicationContext as Application).bookRepository
+            streamer = Streamer(ctx, contentProtections = emptyList())
+            loadBooks()
         }
     }
 
-    fun loadBooks(ctx: Context) {
+    fun loadBooks() {
         viewModelScope.launch(context = Dispatchers.IO) {
             val books = booksRepository?.books()
             withContext(context = Dispatchers.Main) {
@@ -79,6 +87,7 @@ class BookshelfViewModel : ViewModel() {
                 null -> errorsState = BookShelfError.FileNotCreatedError
                 else -> importPublication(ctx = ctx, localFile = localFile)
             }
+            loadBooks()
         }
     }
 
@@ -137,8 +146,33 @@ class BookshelfViewModel : ViewModel() {
             }
         }
 
-    fun closeBook(bookId: Long) = viewModelScope.launch {
+    fun openBook(
+        ctx: Context,
+        book: Book,
+        onBookOpened: (Long) -> Unit,
+    ) = viewModelScope.launch(Dispatchers.IO) {
+        val app = ctx.applicationContext as Application
+        val readerRepository = app.readerRepository.await()
+        readerRepository.open(book.id, ctx)
+            .onFailure { exception ->
+                if (exception is ReaderRepository.CancellationException)
+                    return@launch
 
+                val message = when (exception) {
+                    is UserException -> exception.getUserMessage(ctx)
+                    else -> exception.message
+                }
+                withContext(Dispatchers.Main) {
+                    errorsState = BookShelfError.PublicationOpeningError
+                }
+            }
+            .onSuccess {
+                onBookOpened(book.id)
+            }
     }
 
+    fun closeBook(ctx: Context, bookId: Long) = viewModelScope.launch {
+        val readerRepository = (ctx.applicationContext as Application).readerRepository.await()
+        readerRepository.close(bookId)
+    }
 }

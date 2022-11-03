@@ -65,12 +65,6 @@ class BookRepository(private val booksDao: BooksDao) {
 
     suspend fun deleteBookmark(bookmarkId: Long) = booksDao.deleteBookmark(bookmarkId)
 
-    suspend fun highlightById(id: Long): Highlight? =
-        booksDao.getHighlightById(id)
-
-    fun highlightsForBook(bookId: Long): Flow<List<Highlight>> =
-        booksDao.getHighlightsForBook(bookId)
-
     suspend fun addHighlight(bookId: Long, style: Highlight.Style, @ColorInt tint: Int, locator: Locator, annotation: String): Long =
         booksDao.insertHighlight(Highlight(bookId, style, tint, locator, annotation))
 

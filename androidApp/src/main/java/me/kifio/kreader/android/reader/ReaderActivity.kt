@@ -94,7 +94,6 @@ open class ReaderActivity : AppCompatActivity() {
         }
     }
 
-    @OptIn(ExperimentalMedia2::class)
     private fun createReaderFragment(readerData: ReaderInitData): BaseReaderFragment? {
         val readerClass: Class<out Fragment>? = when {
             readerData.publication.conformsTo(Publication.Profile.EPUB) ->
@@ -129,14 +128,6 @@ open class ReaderActivity : AppCompatActivity() {
             is OutlineFragment -> model.publication.metadata.title
             else -> null
         }
-
-        supportActionBar!!.setDisplayHomeAsUpEnabled(
-            when (currentFragment) {
-                is OutlineFragment -> true
-                else -> false
-
-            }
-        )
     }
 
     override fun getDefaultViewModelProviderFactory(): ViewModelProvider.Factory {

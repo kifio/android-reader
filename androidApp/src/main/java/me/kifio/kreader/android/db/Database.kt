@@ -23,8 +23,6 @@ abstract class BookDatabase : RoomDatabase() {
 
     abstract fun booksDao(): BooksDao
 
-    abstract fun catalogDao(): CatalogDao
-
     companion object {
         @Volatile
         private var INSTANCE: BookDatabase? = null
