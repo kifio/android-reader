@@ -1,13 +1,13 @@
-<resources>
+<resources xmlns:app="http://schemas.android.com/apk/res-auto">
     <style name="AppTheme" parent="Theme.MaterialComponents.NoActionBar">
 
         <item name="android:navigationBarColor">
-            @android:color/transparent
+            @android:color/white
         </item>
 
         <!-- Optional: set to transparent if your app is drawing behind the status bar. -->
         <item name="android:statusBarColor">
-            @android:color/transparent
+            @android:color/white
         </item>
 
         <!-- Optional: set the status bar light and content dark. -->
@@ -30,13 +30,13 @@
         <item name="android:textAlignment">center</item>
     </style>
 
-    <style name="Widget.App.FloatingActionButton" parent="Widget.MaterialComponents.FloatingActionButton">
-        <item name="materialThemeOverlay">@style/ThemeOverlay.App.FloatingActionButton</item>
+    <style name="ReaderToolbarStyle" parent="Widget.MaterialComponents.Toolbar">
+        <item name="titleTextColor">@color/onSurface</item>
+        <item name="android:background">@color/secondary</item>
     </style>
 
-    <style name="ThemeOverlay.App.FloatingActionButton" parent="">
-        <item name="colorSecondary">@color/colorPrimary</item>
-        <item name="colorOnSecondary">@android:color/white</item>
-        <item name="colorOnSurface">@color/colorPrimary</item>
+    <style name="ReaderBottomAppBarStyle" parent="Widget.MaterialComponents.BottomAppBar">
+        <item name="android:background">@color/secondary</item>
     </style>
+
 </resources>

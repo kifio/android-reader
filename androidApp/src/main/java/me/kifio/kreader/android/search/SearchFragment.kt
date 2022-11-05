@@ -54,15 +54,6 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
             .onEach { binding.noResultLabel.isVisible = it.isEmpty() }
             .launchIn(viewScope)
 
-        viewModel.activityChannel
-            .receive(viewLifecycleOwner) { event ->
-                when (event) {
-                    ReaderViewModel.Event.StartNewSearch ->
-                        binding.searchRecyclerView.scrollToPosition(0)
-                    else -> {}
-                }
-            }
-
         binding.searchRecyclerView.apply {
             adapter = searchAdapter
             layoutManager = LinearLayoutManager(activity)

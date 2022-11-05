@@ -6,29 +6,24 @@
 
 package me.kifio.kreader.android.reader
 
-import android.app.AlertDialog
-import android.content.Context
-import android.graphics.Color
 import android.graphics.PointF
-import android.graphics.RectF
 import android.os.Bundle
 import android.view.*
-import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.annotation.ColorInt
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.parcelize.Parcelize
+import me.kifio.kreader.android.databinding.FragmentReaderBinding
+import me.kifio.kreader.android.utils.*
 import org.readium.r2.navigator.*
-import org.readium.r2.navigator.util.BaseActionModeCallback
 import org.readium.r2.navigator.util.EdgeTapNavigation
 import me.kifio.kreader.android.R
-import me.kifio.kreader.android.databinding.FragmentReaderBinding
-import me.kifio.kreader.android.model.Highlight
-import me.kifio.kreader.android.utils.*
+import org.readium.r2.shared.publication.Locator
 
 /*
  * Base reader fragment class
@@ -36,11 +31,15 @@ import me.kifio.kreader.android.utils.*
  * Provides common menu items and saves last location on stop.
  */
 @OptIn(ExperimentalDecorator::class)
-abstract class VisualReaderFragment : BaseReaderFragment(), VisualNavigator.Listener {
+abstract class VisualReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorDelegate {
 
-    protected var binding: FragmentReaderBinding by viewLifecycle()
+    protected abstract val model: ReaderViewModel
 
-    private lateinit var navigatorFragment: Fragment
+    protected abstract val navigator: Navigator
+
+    private var binding: FragmentReaderBinding by viewLifecycle()
+
+    private var navigatorFragment: Fragment? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,71 +52,67 @@ abstract class VisualReaderFragment : BaseReaderFragment(), VisualNavigator.List
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         navigatorFragment = navigator as Fragment
 
         val viewScope = viewLifecycleOwner.lifecycleScope
 
         navigator.currentLocator
-            .onEach { model.saveProgression(it) }
+            .onEach {
+                model.saveProgression(it)
+                model.updateBookmarkIcon(model.locations.contains(it.locations))
+            }
             .launchIn(viewScope)
 
         (navigator as? DecorableNavigator)?.let { navigator ->
             model.searchDecorations
                 .onEach { navigator.applyDecorations(it, "search") }
                 .launchIn(viewScope)
-
-            childFragmentManager.addOnBackStackChangedListener {
-                updateSystemUiVisibility()
-            }
-            binding.fragmentReaderContainer.setOnApplyWindowInsetsListener { container, insets ->
-                updateSystemUiPadding(container, insets)
-                insets
-            }
         }
-    }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+        model.fragmentChannel.receive(this) { event ->
+            model.updateBookmarkIcon(event is ReaderViewModel.FeedbackEvent.BookmarkSuccessfullyAdded)
+        }
+
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {}
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.bookmark -> {
+                        when (model.locations.contains(navigator.currentLocator.value.locations)) {
+                            true -> model.deleteBookmark(navigator.currentLocator.value)
+                            false -> model.insertBookmark(navigator.currentLocator.value)
+                        }
+                        true
+                    }
+                    R.id.bookmarks -> {
+                        model.openOutlineFragment()
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        setMenuVisibility(!hidden)
         requireActivity().invalidateOptionsMenu()
-    }
-    
-    fun updateSystemUiVisibility() {
-        if (navigatorFragment.isHidden)
-            requireActivity().showSystemUi()
-        else
-            requireActivity().hideSystemUi()
-
-        requireView().requestApplyInsets()
-    }
-
-    private fun updateSystemUiPadding(container: View, insets: WindowInsets) {
-        if (navigatorFragment.isHidden) {
-            container.padSystemUi(insets, requireActivity() as AppCompatActivity)
-        } else {
-            container.clearPadding()
-        }
     }
 
     // VisualNavigator.Listener
 
     override fun onTap(point: PointF): Boolean {
-        val navigated = edgeTapNavigation.onTap(point, requireView())
-        if (!navigated) {
-            requireActivity().toggleSystemUi()
-        }
+        model.toggleUIVisibility(edgeTapNavigation.onTap(point, requireView()))
         return true
     }
 
     private val edgeTapNavigation by lazy {
-        EdgeTapNavigation(
-            navigator = navigator as VisualNavigator
-        )
+        EdgeTapNavigation(navigator = navigator as VisualNavigator)
+    }
+
+    open fun go(locator: Locator, animated: Boolean) {
+        navigator.go(locator, animated)
     }
 
 }

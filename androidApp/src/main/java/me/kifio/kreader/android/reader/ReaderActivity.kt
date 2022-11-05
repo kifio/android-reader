@@ -7,25 +7,28 @@
 package me.kifio.kreader.android.reader
 
 import android.app.Activity
-import android.os.Build
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuProvider
+import androidx.core.view.WindowCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentResultListener
 import androidx.fragment.app.commit
 import androidx.fragment.app.commitNow
 import androidx.lifecycle.ViewModelProvider
-import org.readium.navigator.media2.ExperimentalMedia2
-import org.readium.r2.shared.publication.Locator
-import org.readium.r2.shared.publication.Publication
+import dev.chrisbanes.insetter.applyInsetter
 import me.kifio.kreader.android.Application
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.ActivityReaderBinding
 import me.kifio.kreader.android.outline.OutlineContract
 import me.kifio.kreader.android.outline.OutlineFragment
+import org.readium.r2.shared.publication.Locator
+import org.readium.r2.shared.publication.Publication
+
 
 /*
  * An activity to read a publication
@@ -37,7 +40,7 @@ open class ReaderActivity : AppCompatActivity() {
     private lateinit var modelFactory: ReaderViewModel.Factory
     private lateinit var model: ReaderViewModel
     private lateinit var binding: ActivityReaderBinding
-    private lateinit var readerFragment: BaseReaderFragment
+    private lateinit var readerFragment: VisualReaderFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val arguments = ReaderActivityContract.parseIntent(this)
@@ -55,46 +58,73 @@ open class ReaderActivity : AppCompatActivity() {
         }
 
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val binding = ActivityReaderBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        
+
         this.binding = binding
 
-        val readerFragment = supportFragmentManager.findFragmentByTag(READER_FRAGMENT_TAG)
-            ?.let { it as BaseReaderFragment }
-            ?: run { createReaderFragment(model.readerInitData) }
-
-        if (readerFragment is VisualReaderFragment) {
-            val fullscreenDelegate = FullscreenReaderActivityDelegate(this, readerFragment, binding)
-            lifecycle.addObserver(fullscreenDelegate)
+        binding.appBar.applyInsetter {
+            type(statusBars = true) {
+                margin(top = true)
+            }
         }
+
+        binding.activityContainer.applyInsetter {
+            type(navigationBars = true) {
+                margin(bottom = true)
+            }
+        }
+
+        binding.bottomAppBar.applyInsetter {
+            type(navigationBars = true) {
+                margin(bottom = true)
+            }
+        }
+
+        val readerFragment = supportFragmentManager.findFragmentByTag(READER_FRAGMENT_TAG)
+            ?.let { it as VisualReaderFragment }
+            ?: run { createReaderFragment(model.readerInitData) }
 
         readerFragment?.let { this.readerFragment = it }
 
         model.activityChannel.receive(this) { handleReaderFragmentEvent(it) }
-        reconfigureActionBar()
 
         supportFragmentManager.setFragmentResultListener(
             OutlineContract.REQUEST_KEY,
-            this,
-            FragmentResultListener { _, result ->
-                val locator = OutlineContract.parseResult(result).destination
-                closeOutlineFragment(locator)
+            this
+        ) { _, result ->
+            val locator = OutlineContract.parseResult(result).destination
+            closeOutlineFragment(locator)
+        }
+
+        setSupportActionBar(binding.appBar)
+
+        title = model.publication.metadata.title
+
+        addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_reader, menu)
             }
-        )
 
-        supportFragmentManager.addOnBackStackChangedListener {
-            reconfigureActionBar()
-        }
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return false
+            }
 
-        // Add support for display cutout.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
+//            override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//                when (item.itemId) {
+//                    android.R.id.home -> {
+//                        supportFragmentManager.popBackStack()
+//                        return true
+//                    }
+//                }
+//                return super.onOptionsItemSelected(item)
+//            }
+        })
     }
 
-    private fun createReaderFragment(readerData: ReaderInitData): BaseReaderFragment? {
+    private fun createReaderFragment(readerData: ReaderInitData): VisualReaderFragment? {
         val readerClass: Class<out Fragment>? = when {
             readerData.publication.conformsTo(Publication.Profile.EPUB) ->
                 EpubReaderFragment::class.java
@@ -109,25 +139,11 @@ open class ReaderActivity : AppCompatActivity() {
 
         readerClass?.let { it ->
             supportFragmentManager.commitNow {
-                replace(R.id.activity_container, it, Bundle(), READER_FRAGMENT_TAG)
+                add(R.id.activity_container, it, Bundle(), READER_FRAGMENT_TAG)
             }
         }
 
-        return supportFragmentManager.findFragmentByTag(READER_FRAGMENT_TAG) as BaseReaderFragment?
-    }
-
-    override fun onStart() {
-        super.onStart()
-        reconfigureActionBar()
-    }
-
-    private fun reconfigureActionBar() {
-        val currentFragment = supportFragmentManager.fragments.lastOrNull()
-
-        title = when (currentFragment) {
-            is OutlineFragment -> model.publication.metadata.title
-            else -> null
-        }
+        return supportFragmentManager.findFragmentByTag(READER_FRAGMENT_TAG) as VisualReaderFragment?
     }
 
     override fun getDefaultViewModelProviderFactory(): ViewModelProvider.Factory {
@@ -142,10 +158,8 @@ open class ReaderActivity : AppCompatActivity() {
     private fun handleReaderFragmentEvent(event: ReaderViewModel.Event) {
         when(event) {
             is ReaderViewModel.Event.OpenOutlineRequested -> showOutlineFragment()
-            is ReaderViewModel.Event.Failure -> {
-                Toast.makeText(this, event.error.getUserMessage(this), Toast.LENGTH_LONG).show()
-            }
-            else -> {}
+            is ReaderViewModel.Event.ToggleUIVisibilityRequested -> toggleUI(event.navigated)
+            is ReaderViewModel.Event.UpdateBookmarkRequested -> updateBookmarkIcon(event.isBookmarkedPage)
         }
     }
 
@@ -162,19 +176,25 @@ open class ReaderActivity : AppCompatActivity() {
         supportFragmentManager.popBackStack()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            android.R.id.home -> {
-                supportFragmentManager.popBackStack()
-                return true
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
     companion object {
         const val READER_FRAGMENT_TAG = "reader"
         const val OUTLINE_FRAGMENT_TAG = "outline"
-        const val DRM_FRAGMENT_TAG = "drm"
+    }
+
+    private fun toggleUI(navigated: Boolean) {
+        if (navigated) return
+        with (supportActionBar?.isShowing != true) {
+            binding.appBar.isVisible = this
+            binding.bottomAppBar.isVisible = this
+        }
+    }
+
+    private fun updateBookmarkIcon(isBookmarkedPage: Boolean) {
+        binding.appBar.menu.findItem(R.id.bookmark)?.setIcon(
+            when (isBookmarkedPage) {
+                true -> R.drawable.ic_baseline_bookmark_24
+                false -> R.drawable.ic_baseline_bookmark_border_24
+            }
+        )
     }
 }

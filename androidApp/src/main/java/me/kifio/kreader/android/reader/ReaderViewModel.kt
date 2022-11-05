@@ -7,8 +7,6 @@
 package me.kifio.kreader.android.reader
 
 import android.graphics.Color
-import android.os.Bundle
-import androidx.annotation.ColorInt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -19,21 +17,23 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import me.kifio.kreader.android.Application
 import org.readium.r2.navigator.Decoration
-import org.readium.r2.navigator.ExperimentalAudiobook
 import org.readium.r2.navigator.ExperimentalDecorator
 import org.readium.r2.shared.Search
-import org.readium.r2.shared.UserException
 import org.readium.r2.shared.publication.*
 import org.readium.r2.shared.publication.services.search.SearchIterator
 import org.readium.r2.shared.publication.services.search.SearchTry
-import org.readium.r2.shared.publication.services.search.search
 import org.readium.r2.shared.util.Try
 import me.kifio.kreader.android.bookshelf.BookRepository
-import me.kifio.kreader.android.model.Highlight
+import me.kifio.kreader.android.model.Bookmark
 import me.kifio.kreader.android.search.SearchPagingSource
 import me.kifio.kreader.android.utils.EventChannel
+import org.json.JSONObject
 
-@OptIn(Search::class, ExperimentalDecorator::class, ExperimentalCoroutinesApi::class, ExperimentalAudiobook::class)
+@OptIn(
+    Search::class,
+    ExperimentalDecorator::class,
+    ExperimentalCoroutinesApi::class,
+)
 class ReaderViewModel(
     val readerInitData: ReaderInitData,
     private val bookRepository: BookRepository,
@@ -51,42 +51,66 @@ class ReaderViewModel(
     val fragmentChannel: EventChannel<FeedbackEvent> =
         EventChannel(Channel(Channel.BUFFERED), viewModelScope)
 
+    private var _bookmarks: MutableList<Bookmark> = mutableListOf()
+    private var _locations: MutableList<Locator.Locations> = mutableListOf()
+
+    val bookmarks: List<Bookmark>
+        get() = _bookmarks
+
+    val locations: List<Locator.Locations>
+        get() = _locations
+
+    init {
+        viewModelScope.launch {
+            _bookmarks.addAll(bookRepository.bookmarksForBook(bookId = bookId))
+            _locations.addAll(bookmarks.map { it.locations() })
+        }
+    }
 
     fun saveProgression(locator: Locator) = viewModelScope.launch {
         bookRepository.saveProgression(locator, bookId)
     }
 
-    fun getBookmarks() = bookRepository.bookmarksForBook(bookId)
-
     fun insertBookmark(locator: Locator) = viewModelScope.launch {
-        val id = bookRepository.insertBookmark(bookId, publication, locator)
-        if (id != -1L) {
+        with(bookRepository.insertBookmark(bookId, publication, locator)) {
+            _bookmarks.add(this)
+            _locations.add(this.locations())
             fragmentChannel.send(FeedbackEvent.BookmarkSuccessfullyAdded)
-        } else {
-            fragmentChannel.send(FeedbackEvent.BookmarkFailed)
         }
     }
 
+    fun deleteBookmark(locator: Locator) = viewModelScope.launch {
+        val bookmark: Bookmark = _bookmarks.find {
+            val l = Locator.Locations.fromJSON(JSONObject(it.location))
+            l == locator.locations
+        } ?: return@launch
+
+        val id = bookmark.id ?: return@launch
+
+        _locations.remove(bookmark.locations())
+        deleteBookmark(id)
+    }
+
     fun deleteBookmark(id: Long) = viewModelScope.launch {
+        _bookmarks.removeIf { it.id == id }
         bookRepository.deleteBookmark(id)
+        fragmentChannel.send(FeedbackEvent.BookmarkSuccessfullyRemoved)
     }
 
-    fun search(query: String) = viewModelScope.launch {
-        if (query == lastSearchQuery) return@launch
-        lastSearchQuery = query
-        _searchLocators.value = emptyList()
-        searchIterator = publication.search(query)
-            .onFailure { activityChannel.send(Event.Failure(it)) }
-            .getOrNull()
-        pagingSourceFactory.invalidate()
-        activityChannel.send(Event.StartNewSearch)
+    fun Bookmark.locations(): Locator.Locations {
+        return Locator.Locations.fromJSON(JSONObject(this.location))
     }
 
-    fun cancelSearch() = viewModelScope.launch {
-        _searchLocators.value = emptyList()
-        searchIterator?.close()
-        searchIterator = null
-        pagingSourceFactory.invalidate()
+    fun updateBookmarkIcon(isBookmarkPage: Boolean) {
+        activityChannel.send(Event.UpdateBookmarkRequested(isBookmarkPage))
+    }
+
+    fun toggleUIVisibility(navigated: Boolean) {
+        activityChannel.send(Event.ToggleUIVisibilityRequested(navigated))
+    }
+
+    fun openOutlineFragment() {
+        activityChannel.send(Event.OpenOutlineRequested)
     }
 
     val searchLocators: StateFlow<List<Locator>> get() = _searchLocators
@@ -133,14 +157,14 @@ class ReaderViewModel(
 
     sealed class Event {
         object OpenOutlineRequested : Event()
-        object StartNewSearch : Event()
-        class OpeningError(val exception: Exception) : Event()
-        class Failure(val error: UserException) : Event()
+        data class ToggleUIVisibilityRequested(val navigated: Boolean) : Event()
+        data class UpdateBookmarkRequested(val isBookmarkedPage: Boolean) : Event()
     }
+
 
     sealed class FeedbackEvent {
         object BookmarkSuccessfullyAdded : FeedbackEvent()
-        object BookmarkFailed : FeedbackEvent()
+        object BookmarkSuccessfullyRemoved : FeedbackEvent()
     }
 
     class Factory(

@@ -43,7 +43,7 @@ class BookRepository(private val booksDao: BooksDao) {
     suspend fun saveProgression(locator: Locator, bookId: Long) =
         booksDao.saveProgression(locator.toJSON().toString(), bookId)
 
-    suspend fun insertBookmark(bookId: Long, publication: Publication, locator: Locator): Long {
+    suspend fun insertBookmark(bookId: Long, publication: Publication, locator: Locator): Bookmark {
         val resource = publication.readingOrder.indexOfFirstWithHref(locator.href)!!
         val bookmark = Bookmark(
             creation = System.currentTimeMillis(),
@@ -57,24 +57,12 @@ class BookRepository(private val booksDao: BooksDao) {
             locatorText = Locator.Text().toJSON().toString()
         )
 
-        return booksDao.insertBookmark(bookmark)
+        val id = booksDao.insertBookmark(bookmark)
+        return bookmark.copy(id = id)
     }
 
-    fun bookmarksForBook(bookId: Long): LiveData<MutableList<Bookmark>> =
+    suspend fun bookmarksForBook(bookId: Long): MutableList<Bookmark> =
         booksDao.getBookmarksForBook(bookId)
 
     suspend fun deleteBookmark(bookmarkId: Long) = booksDao.deleteBookmark(bookmarkId)
-
-    suspend fun addHighlight(bookId: Long, style: Highlight.Style, @ColorInt tint: Int, locator: Locator, annotation: String): Long =
-        booksDao.insertHighlight(Highlight(bookId, style, tint, locator, annotation))
-
-    suspend fun deleteHighlight(id: Long) = booksDao.deleteHighlight(id)
-
-    suspend fun updateHighlightAnnotation(id: Long, annotation: String) {
-        booksDao.updateHighlightAnnotation(id, annotation)
-    }
-
-    suspend fun updateHighlightStyle(id: Long, style: Highlight.Style, @ColorInt tint: Int) {
-        booksDao.updateHighlightStyle(id, style, tint)
-    }
 }

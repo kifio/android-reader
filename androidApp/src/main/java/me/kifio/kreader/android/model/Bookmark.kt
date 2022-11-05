@@ -20,7 +20,7 @@ import org.readium.r2.shared.publication.Locator
     )]
 )
 data class Bookmark(
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = ID)
     var id: Long? = null,
     @ColumnInfo(name = CREATION_DATE, defaultValue = "CURRENT_TIMESTAMP")

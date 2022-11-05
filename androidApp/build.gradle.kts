@@ -27,6 +27,9 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+    }
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
@@ -35,7 +38,6 @@ android {
 }
 
 dependencies {
-    implementation("androidx.navigation:navigation-runtime-ktx:2.4.1")
     val compose_version = "1.2.1"
     val readium_version = "2.2.1"
     val room_version = "2.4.1"
@@ -57,7 +59,9 @@ dependencies {
     implementation("io.coil-kt:coil-compose:$coil_version")
     implementation("io.coil-kt:coil:$coil_version")
     implementation("androidx.navigation:navigation-fragment-ktx:$nav_version")
+    implementation("androidx.navigation:navigation-runtime-ktx:$nav_version")
     implementation("com.google.android.material:material:1.7.0")
+    implementation("dev.chrisbanes.insetter:insetter:0.6.1")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
     implementation("com.github.readium.kotlin-toolkit:readium-shared:$readium_version")

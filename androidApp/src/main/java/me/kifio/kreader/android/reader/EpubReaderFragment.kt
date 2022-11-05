@@ -9,6 +9,7 @@ package me.kifio.kreader.android.reader
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.view.accessibility.AccessibilityManager
 import android.view.inputmethod.InputMethodManager
@@ -23,6 +24,8 @@ import androidx.fragment.app.commit
 import androidx.fragment.app.commitNow
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.viewpager.widget.ViewPager
+import com.github.barteksc.pdfviewer.listener.OnPageChangeListener
 import kotlinx.coroutines.delay
 import org.readium.r2.navigator.ExperimentalDecorator
 import org.readium.r2.navigator.Navigator
@@ -44,12 +47,10 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
 
     override lateinit var model: ReaderViewModel
     override lateinit var navigator: Navigator
+
     private lateinit var publication: Publication
     private lateinit var navigatorFragment: EpubNavigatorFragment
-
     private lateinit var menuSearch: MenuItem
-    lateinit var menuSearchView: SearchView
-
     private lateinit var userSettings: UserSettings
     private var isScreenReaderVisible = false
     private var isSearchViewIconified = true
@@ -96,8 +97,6 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
             }
         )
 
-        setHasOptionsMenu(true)
-
         super.onCreate(savedInstanceState)
     }
 
@@ -122,12 +121,34 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
         val activity = requireActivity()
         userSettings = UserSettings(navigatorFragment.preferences, activity, publication.userSettingsUIPreset)
 
-       // This is a hack to draw the right background color on top and bottom blank spaces
+        // This is a hack to draw the right background color on top and bottom blank spaces
         navigatorFragment.lifecycleScope.launchWhenStarted {
             val appearancePref = navigatorFragment.preferences.getInt(APPEARANCE_REF, 0)
             val backgroundsColors = mutableListOf("#ffffff", "#faf4e8", "#000000")
             navigatorFragment.resourcePager.setBackgroundColor(Color.parseColor(backgroundsColors[appearancePref]))
+
+            navigatorFragment.resourcePager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+                override fun onPageScrolled(
+                    position: Int,
+                    positionOffset: Float,
+                    positionOffsetPixels: Int
+                ) {
+//                TODO("Not yet implemented")
+                }
+
+                override fun onPageSelected(position: Int) {
+                    Log.d("kifio", "onPageSelected = $position")
+                }
+
+                override fun onPageScrollStateChanged(state: Int) {
+//                TODO("Not yet implemented")
+                }
+
+            })
         }
+
+
+
     }
 
     override fun onResume() {
@@ -158,91 +179,80 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, menuInflater)
-        menuInflater.inflate(R.menu.menu_epub, menu)
-
-        menuSearch = menu.findItem(R.id.search)
-        menuSearchView = menuSearch.actionView as SearchView
-
-        connectSearch()
-        if (!isSearchViewIconified) menuSearch.expandActionView()
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(IS_SCREEN_READER_VISIBLE_KEY, isScreenReaderVisible)
         outState.putBoolean(IS_SEARCH_VIEW_ICONIFIED, isSearchViewIconified)
     }
 
-    private fun connectSearch() {
-        menuSearch.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+//    private fun connectSearch() {
+//        menuSearch.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+//
+//            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+//                if (isSearchViewIconified) { // It is not a state restoration.
+//                    showSearchFragment()
+//                }
+//
+//                isSearchViewIconified = false
+//                return true
+//            }
+//
+//            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+//                isSearchViewIconified = true
+//                childFragmentManager.popBackStack()
+//                menuSearchView.clearFocus()
+//
+//                return true
+//            }
+//        })
+//
+//        menuSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+//
+//            override fun onQueryTextSubmit(query: String): Boolean {
+//                model.search(query)
+//                menuSearchView.clearFocus()
+//
+//                return false
+//            }
+//
+//            override fun onQueryTextChange(s: String): Boolean {
+//                return false
+//            }
+//        })
+//
+//        menuSearchView.findViewById<ImageView>(org.readium.r2.navigator.R.id.search_close_btn).setOnClickListener {
+//            menuSearchView.requestFocus()
+//            model.cancelSearch()
+//            menuSearchView.setQuery("", false)
+//
+//            (activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.showSoftInput(
+//                this.view, InputMethodManager.SHOW_FORCED
+//            )
+//        }
+//    }
 
-            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
-                if (isSearchViewIconified) { // It is not a state restoration.
-                    showSearchFragment()
-                }
-
-                isSearchViewIconified = false
-                return true
-            }
-
-            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-                isSearchViewIconified = true
-                childFragmentManager.popBackStack()
-                menuSearchView.clearFocus()
-
-                return true
-            }
-        })
-
-        menuSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-
-            override fun onQueryTextSubmit(query: String): Boolean {
-                model.search(query)
-                menuSearchView.clearFocus()
-
-                return false
-            }
-
-            override fun onQueryTextChange(s: String): Boolean {
-                return false
-            }
-        })
-
-        menuSearchView.findViewById<ImageView>(org.readium.r2.navigator.R.id.search_close_btn).setOnClickListener {
-            menuSearchView.requestFocus()
-            model.cancelSearch()
-            menuSearchView.setQuery("", false)
-
-            (activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.showSoftInput(
-                this.view, InputMethodManager.SHOW_FORCED
-            )
-        }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (super.onOptionsItemSelected(item)) {
-            return true
-        }
-
-       return when (item.itemId) {
-           R.id.settings -> {
-               userSettings.userSettingsPopUp().showAsDropDown(requireActivity().findViewById(R.id.settings), 0, 0, Gravity.END)
-               true
-           }
-           R.id.search -> {
-               super.onOptionsItemSelected(item)
-           }
-
-           android.R.id.home -> {
-               menuSearch.collapseActionView()
-               true
-           }
-
-            else -> false
-        }
-    }
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        if (super.onOptionsItemSelected(item)) {
+//            return true
+//        }
+//
+//       return when (item.itemId) {
+//           R.id.settings -> {
+//               userSettings.userSettingsPopUp().showAsDropDown(requireActivity().findViewById(R.id.settings), 0, 0, Gravity.END)
+//               true
+//           }
+//           R.id.search -> {
+//               super.onOptionsItemSelected(item)
+//           }
+//
+//           android.R.id.home -> {
+//               menuSearch.collapseActionView()
+//               true
+//           }
+//
+//            else -> false
+//        }
+//    }
 
     private fun showSearchFragment() {
         childFragmentManager.commit {

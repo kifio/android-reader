@@ -65,10 +65,9 @@ class BookmarksFragment : Fragment() {
         }
 
         val comparator: Comparator<Bookmark> = compareBy({ it.resourceIndex }, { it.locator.locations.progression })
-        viewModel.getBookmarks().observe(viewLifecycleOwner, {
-            val bookmarks = it.sortedWith(comparator).toMutableList()
-            bookmarkAdapter.submitList(bookmarks)
-        })
+//        viewModel.bookmarks.observe(viewLifecycleOwner) {
+//            bookmarkAdapter.submitList(it.sortedWith(comparator))
+//        }
     }
 
     private fun onBookmarkSelected(bookmark: Bookmark) {
