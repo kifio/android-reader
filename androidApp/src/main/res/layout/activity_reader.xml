@@ -18,9 +18,28 @@
             style="@style/ReaderToolbarStyle"
             android:id="@+id/app_bar"
             android:layout_width="match_parent"
-            android:layout_height="?android:attr/actionBarSize" />
+            android:layout_height="?android:attr/actionBarSize"/>
 
     </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/navigate_up"
+        android:padding="16dp"
+        android:src="@drawable/ic_baseline_arrow_back_24"
+        android:layout_width="?android:attr/actionBarSize"
+        android:layout_height="?android:attr/actionBarSize"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:elevation="16dp"/>
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/outline"
+        android:src="@drawable/ic_baseline_format_list_bulleted_24"
+        android:padding="16dp"
+        android:layout_marginStart="?android:attr/actionBarSize"
+        android:layout_width="?android:attr/actionBarSize"
+        android:layout_height="?android:attr/actionBarSize"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:elevation="16dp"/>
 
     <TextView
         android:id="@+id/pages_count"

@@ -57,17 +57,21 @@ class BookmarksFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        bookmarkAdapter = BookmarkAdapter(publication, onBookmarkDeleteRequested = { bookmark -> viewModel.deleteBookmark(bookmark.id!!) }, onBookmarkSelectedRequested = { bookmark -> onBookmarkSelected(bookmark) })
+        bookmarkAdapter = BookmarkAdapter(
+            publication,
+            onBookmarkDeleteRequested = { bookmark -> viewModel.deleteBookmark(bookmark.id!!) },
+            onBookmarkSelectedRequested = { bookmark -> onBookmarkSelected(bookmark) })
         binding.listView.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(requireContext())
             adapter = bookmarkAdapter
         }
 
-        val comparator: Comparator<Bookmark> = compareBy({ it.resourceIndex }, { it.locator.locations.progression })
-//        viewModel.bookmarks.observe(viewLifecycleOwner) {
-//            bookmarkAdapter.submitList(it.sortedWith(comparator))
-//        }
+        bookmarkAdapter.submitList(
+            viewModel.bookmarks.sortedWith(
+                compareBy({ it.resourceIndex }, { it.locator.locations.progression })
+            )
+        )
     }
 
     private fun onBookmarkSelected(bookmark: Bookmark) {
@@ -78,16 +82,20 @@ class BookmarksFragment : Fragment() {
     }
 }
 
-class BookmarkAdapter(private val publication: Publication, private val onBookmarkDeleteRequested: (Bookmark) -> Unit, private val onBookmarkSelectedRequested: (Bookmark) -> Unit) :
-        ListAdapter<Bookmark, BookmarkAdapter.ViewHolder>(BookmarksDiff()) {
+class BookmarkAdapter(
+    private val publication: Publication,
+    private val onBookmarkDeleteRequested: (Bookmark) -> Unit,
+    private val onBookmarkSelectedRequested: (Bookmark) -> Unit
+) :
+    ListAdapter<Bookmark, BookmarkAdapter.ViewHolder>(BookmarksDiff()) {
 
     init {
         setHasStableIds(true)
     }
 
     override fun onCreateViewHolder(
-            parent: ViewGroup,
-            viewType: Int
+        parent: ViewGroup,
+        viewType: Int
     ): ViewHolder {
         return ViewHolder(
             ItemRecycleBookmarkBinding.inflate(
@@ -103,11 +111,12 @@ class BookmarkAdapter(private val publication: Publication, private val onBookma
         holder.bind(item)
     }
 
-    inner class ViewHolder(val binding: ItemRecycleBookmarkBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(val binding: ItemRecycleBookmarkBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 
         fun bind(bookmark: Bookmark) {
             val title = getBookSpineItem(bookmark.resourceHref)
-                    ?: "*Title Missing*"
+                ?: "*Title Missing*"
 
             binding.bookmarkChapter.text = title
             bookmark.locator.locations.progression?.let { progression ->
@@ -115,22 +124,19 @@ class BookmarkAdapter(private val publication: Publication, private val onBookma
                 binding.bookmarkProgression.text = formattedProgression
             }
 
-            val formattedDate = bookmark.creation?.let { LocalDate.ofEpochDay(it).toString() }
-            binding.bookmarkTimestamp.text = formattedDate
-
-            binding.overflow.setOnClickListener {
-
-                val popupMenu = PopupMenu(binding.overflow.context, binding.overflow)
-                popupMenu.menuInflater.inflate(R.menu.menu_bookmark, popupMenu.menu)
-                popupMenu.show()
-
-                popupMenu.setOnMenuItemClickListener { item ->
-                    if (item.itemId == R.id.delete) {
-                        onBookmarkDeleteRequested(bookmark)
-                    }
-                    false
-                }
-            }
+//            binding.overflow.setOnClickListener {
+//
+//                val popupMenu = PopupMenu(binding.overflow.context, binding.overflow)
+//                popupMenu.menuInflater.inflate(R.menu.menu_bookmark, popupMenu.menu)
+//                popupMenu.show()
+//
+//                popupMenu.setOnMenuItemClickListener { item ->
+//                    if (item.itemId == R.id.delete) {
+//                        onBookmarkDeleteRequested(bookmark)
+//                    }
+//                    false
+//                }
+//            }
 
             binding.root.setOnClickListener {
                 onBookmarkSelectedRequested(bookmark)
@@ -156,15 +162,15 @@ class BookmarkAdapter(private val publication: Publication, private val onBookma
 private class BookmarksDiff : DiffUtil.ItemCallback<Bookmark>() {
 
     override fun areItemsTheSame(
-            oldItem: Bookmark,
-            newItem: Bookmark
+        oldItem: Bookmark,
+        newItem: Bookmark
     ): Boolean {
         return oldItem.id == newItem.id
     }
 
     override fun areContentsTheSame(
-            oldItem: Bookmark,
-            newItem: Bookmark
+        oldItem: Bookmark,
+        newItem: Bookmark
     ): Boolean {
         return oldItem.bookId == newItem.bookId
                 && oldItem.location == newItem.location

@@ -89,6 +89,18 @@ open class ReaderActivity : AppCompatActivity() {
             }
         }
 
+        binding.navigateUp.applyInsetter {
+            type(statusBars = true) {
+                margin(top = true)
+            }
+        }
+
+        binding.outline.applyInsetter {
+            type(statusBars = true) {
+                margin(top = true)
+            }
+        }
+
         val readerFragment = supportFragmentManager.findFragmentByTag(READER_FRAGMENT_TAG)
             ?.let { it as VisualReaderFragment }
             ?: run { createReaderFragment(model.readerInitData) }
@@ -107,7 +119,7 @@ open class ReaderActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.appBar)
 
-        title = model.publication.metadata.title
+        title = null
 
         addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -117,13 +129,13 @@ open class ReaderActivity : AppCompatActivity() {
             override fun onMenuItemSelected(menuItem: MenuItem) = false
         })
 
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
 
-
+        binding.outline.setOnClickListener { showOutlineFragment() }
     }
 
     private fun onViewModelReady() {
         binding.bottomBarProgress.max = model.pagesCount
-
         binding.bottomBarProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, userInitiated: Boolean) {}
 

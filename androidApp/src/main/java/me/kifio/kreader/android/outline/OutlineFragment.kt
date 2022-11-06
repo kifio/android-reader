@@ -42,9 +42,8 @@ class OutlineFragment : Fragment() {
 
         childFragmentManager.setFragmentResultListener(
             OutlineContract.REQUEST_KEY,
-            this,
-            { requestKey, bundle -> setFragmentResult(requestKey, bundle) }
-        )
+            this
+        ) { requestKey, bundle -> setFragmentResult(requestKey, bundle) }
     }
 
     override fun onCreateView(
@@ -59,15 +58,7 @@ class OutlineFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val outlines: List<Outline> = when {
-            publication.conformsTo(Publication.Profile.EPUB) -> listOf(
-                Outline.Contents,
-                Outline.Bookmarks,
-                Outline.PageList,
-                Outline.Landmarks
-            )
-            else -> listOf(Outline.Contents, Outline.Bookmarks)
-        }
+        val outlines: List<Outline> = listOf(Outline.Contents, Outline.Bookmarks)
 
         binding.outlinePager.adapter = OutlineFragmentStateAdapter(this, publication, outlines)
         TabLayoutMediator(binding.outlineTabLayout, binding.outlinePager) { tab, idx -> tab.setText(outlines[idx].label) }.attach()
@@ -84,9 +75,7 @@ private class OutlineFragmentStateAdapter(fragment: Fragment, val publication: P
     override fun createFragment(position: Int): Fragment {
         return when (this.outlines[position]) {
             Outline.Bookmarks -> BookmarksFragment()
-            Outline.Landmarks -> createLandmarksFragment()
             Outline.Contents -> createContentsFragment()
-            Outline.PageList -> createPageListFragment()
         }
     }
 
@@ -110,6 +99,4 @@ private class OutlineFragmentStateAdapter(fragment: Fragment, val publication: P
 private enum class Outline(val label: Int) {
     Contents(R.string.contents_tab_label),
     Bookmarks(R.string.bookmarks_tab_label),
-    PageList(R.string.pagelist_tab_label),
-    Landmarks(R.string.landmarks_tab_label)
 }

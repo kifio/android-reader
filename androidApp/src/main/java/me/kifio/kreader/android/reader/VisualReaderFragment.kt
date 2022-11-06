@@ -92,10 +92,6 @@ abstract class VisualReaderFragment : Fragment(), VisualNavigator.Listener, Navi
                         }
                         true
                     }
-                    R.id.bookmarks -> {
-                        model.openOutlineFragment()
-                        true
-                    }
                     else -> false
                 }
             }
