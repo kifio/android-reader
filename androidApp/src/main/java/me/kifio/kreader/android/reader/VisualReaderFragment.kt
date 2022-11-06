@@ -58,7 +58,7 @@ abstract class VisualReaderFragment : Fragment(), VisualNavigator.Listener, Navi
 
         navigator.currentLocator
             .onEach {
-                model.saveProgression(it)
+                model.updateProgression(it)
                 model.updateBookmarkIcon(model.locations.contains(it.locations))
             }
             .launchIn(viewScope)
@@ -70,7 +70,14 @@ abstract class VisualReaderFragment : Fragment(), VisualNavigator.Listener, Navi
         }
 
         model.fragmentChannel.receive(this) { event ->
-            model.updateBookmarkIcon(event is ReaderViewModel.FeedbackEvent.BookmarkSuccessfullyAdded)
+            when (event) {
+                is ReaderViewModel.FragmentEvent.GoToLocator -> {
+                    go(event.locator, true)
+                }
+                else -> {
+                    model.updateBookmarkIcon(event is ReaderViewModel.FragmentEvent.BookmarkSuccessfullyAdded)
+                }
+            }
         }
 
         requireActivity().addMenuProvider(object : MenuProvider {

@@ -22,6 +22,13 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <TextView
+        android:id="@+id/pages_count"
+        android:layout_width="wrap_content"
+        android:layout_height="28dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:textColor="@color/secondary"/>
+
     <com.google.android.material.appbar.AppBarLayout
         style="@style/ReaderBottomAppBarStyle"
         android:id="@+id/bottom_app_bar"
@@ -30,17 +37,20 @@
         android:layout_gravity="bottom">
 
         <SeekBar
+            android:id="@+id/bottom_bar_progress"
             android:layout_width="match_parent"
             android:layout_height="28dp"
-            android:layout_gravity="top"/>
+            android:layout_gravity="top"
+            android:progressBackgroundTint="@color/secondary"
+            android:progressTint="@color/primary"
+            android:thumbTint="@color/primary" />
 
         <TextView
+            android:id="@+id/bottom_bar_pages_count"
             android:layout_width="wrap_content"
             android:layout_height="28dp"
-            android:layout_gravity="bottom"
-            android:textColor="@color/onSurface"
-            android:text="100/1000"/>
-
+            android:layout_gravity="bottom|center_horizontal"
+            android:textColor="@color/primary"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 

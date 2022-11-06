@@ -39,7 +39,6 @@ import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.epub.UserSettings
-import me.kifio.kreader.android.search.SearchFragment
 import me.kifio.kreader.android.utils.extensions.toDataUrl
 
 @OptIn(ExperimentalDecorator::class)
@@ -59,7 +58,7 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
     private var isExploreByTouchEnabled = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val activity = requireActivity()
+        super.onCreate(savedInstanceState)
 
         if (savedInstanceState != null) {
             isScreenReaderVisible = savedInstanceState.getBoolean(IS_SCREEN_READER_VISIBLE_KEY)
@@ -82,31 +81,28 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
                 listener = this,
                 config = EpubNavigatorFragment.Configuration().apply {
                     // Register the HTML template for our custom [DecorationStyleAnnotationMark].
-                    decorationTemplates[DecorationStyleAnnotationMark::class] = annotationMarkTemplate(activity)
+                    decorationTemplates[DecorationStyleAnnotationMark::class] =
+                        annotationMarkTemplate(requireActivity())
                 }
             )
-
-        childFragmentManager.setFragmentResultListener(
-            SearchFragment::class.java.name,
-            this,
-            FragmentResultListener { _, result ->
-                menuSearch.collapseActionView()
-                result.getParcelable<Locator>(SearchFragment::class.java.name)?.let {
-                    navigatorFragment.go(it)
-                }
-            }
-        )
-
-        super.onCreate(savedInstanceState)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         val view = super.onCreateView(inflater, container, savedInstanceState)
         val navigatorFragmentTag = getString(org.readium.r2.navigator.R.string.epub_navigator_tag)
 
         if (savedInstanceState == null) {
             childFragmentManager.commitNow {
-                add(R.id.fragment_reader_container, EpubNavigatorFragment::class.java, Bundle(), navigatorFragmentTag)
+                add(
+                    R.id.fragment_reader_container,
+                    EpubNavigatorFragment::class.java,
+                    Bundle(),
+                    navigatorFragmentTag
+                )
             }
         }
         navigator = childFragmentManager.findFragmentByTag(navigatorFragmentTag) as Navigator
@@ -119,36 +115,15 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
         super.onViewCreated(view, savedInstanceState)
 
         val activity = requireActivity()
-        userSettings = UserSettings(navigatorFragment.preferences, activity, publication.userSettingsUIPreset)
+        userSettings =
+            UserSettings(navigatorFragment.preferences, activity, publication.userSettingsUIPreset)
 
         // This is a hack to draw the right background color on top and bottom blank spaces
         navigatorFragment.lifecycleScope.launchWhenStarted {
             val appearancePref = navigatorFragment.preferences.getInt(APPEARANCE_REF, 0)
             val backgroundsColors = mutableListOf("#ffffff", "#faf4e8", "#000000")
             navigatorFragment.resourcePager.setBackgroundColor(Color.parseColor(backgroundsColors[appearancePref]))
-
-            navigatorFragment.resourcePager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
-                override fun onPageScrolled(
-                    position: Int,
-                    positionOffset: Float,
-                    positionOffsetPixels: Int
-                ) {
-//                TODO("Not yet implemented")
-                }
-
-                override fun onPageSelected(position: Int) {
-                    Log.d("kifio", "onPageSelected = $position")
-                }
-
-                override fun onPageScrollStateChanged(state: Int) {
-//                TODO("Not yet implemented")
-                }
-
-            })
         }
-
-
-
     }
 
     override fun onResume() {
@@ -159,13 +134,15 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
 
         // If TalkBack or any touch exploration service is activated we force scroll mode (and
         // override user preferences)
-        val am = activity.getSystemService(AppCompatActivity.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        val am =
+            activity.getSystemService(AppCompatActivity.ACCESSIBILITY_SERVICE) as AccessibilityManager
         isExploreByTouchEnabled = am.isTouchExplorationEnabled
 
         if (isExploreByTouchEnabled) {
             // Preset & preferences adapted
             publication.userSettingsUIPreset[ReadiumCSSName.ref(SCROLL_REF)] = true
-            navigatorFragment.preferences.edit().putBoolean(SCROLL_REF, true).apply() //overriding user preferences
+            navigatorFragment.preferences.edit().putBoolean(SCROLL_REF, true)
+                .apply() //overriding user preferences
             userSettings.saveChanges()
 
             lifecycleScope.launchWhenResumed {
@@ -185,87 +162,7 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
         outState.putBoolean(IS_SEARCH_VIEW_ICONIFIED, isSearchViewIconified)
     }
 
-//    private fun connectSearch() {
-//        menuSearch.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-//
-//            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
-//                if (isSearchViewIconified) { // It is not a state restoration.
-//                    showSearchFragment()
-//                }
-//
-//                isSearchViewIconified = false
-//                return true
-//            }
-//
-//            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-//                isSearchViewIconified = true
-//                childFragmentManager.popBackStack()
-//                menuSearchView.clearFocus()
-//
-//                return true
-//            }
-//        })
-//
-//        menuSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-//
-//            override fun onQueryTextSubmit(query: String): Boolean {
-//                model.search(query)
-//                menuSearchView.clearFocus()
-//
-//                return false
-//            }
-//
-//            override fun onQueryTextChange(s: String): Boolean {
-//                return false
-//            }
-//        })
-//
-//        menuSearchView.findViewById<ImageView>(org.readium.r2.navigator.R.id.search_close_btn).setOnClickListener {
-//            menuSearchView.requestFocus()
-//            model.cancelSearch()
-//            menuSearchView.setQuery("", false)
-//
-//            (activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.showSoftInput(
-//                this.view, InputMethodManager.SHOW_FORCED
-//            )
-//        }
-//    }
-
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        if (super.onOptionsItemSelected(item)) {
-//            return true
-//        }
-//
-//       return when (item.itemId) {
-//           R.id.settings -> {
-//               userSettings.userSettingsPopUp().showAsDropDown(requireActivity().findViewById(R.id.settings), 0, 0, Gravity.END)
-//               true
-//           }
-//           R.id.search -> {
-//               super.onOptionsItemSelected(item)
-//           }
-//
-//           android.R.id.home -> {
-//               menuSearch.collapseActionView()
-//               true
-//           }
-//
-//            else -> false
-//        }
-//    }
-
-    private fun showSearchFragment() {
-        childFragmentManager.commit {
-            childFragmentManager.findFragmentByTag(SEARCH_FRAGMENT_TAG)?.let { remove(it) }
-            add(R.id.fragment_reader_container, SearchFragment::class.java, Bundle(), SEARCH_FRAGMENT_TAG)
-            hide(navigatorFragment)
-            addToBackStack(SEARCH_FRAGMENT_TAG)
-        }
-    }
-
     companion object {
-
-        private const val SEARCH_FRAGMENT_TAG = "search"
 
         private const val IS_SCREEN_READER_VISIBLE_KEY = "isScreenReaderVisible"
 
@@ -280,7 +177,10 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
  * associated note.
  */
 @OptIn(ExperimentalDecorator::class)
-private fun annotationMarkTemplate(context: Context, @ColorInt defaultTint: Int = Color.YELLOW): HtmlDecorationTemplate {
+private fun annotationMarkTemplate(
+    context: Context,
+    @ColorInt defaultTint: Int = Color.YELLOW
+): HtmlDecorationTemplate {
     // Converts the pen icon to a base 64 data URL, to be embedded in the decoration stylesheet.
     // Alternatively, serve the image with the local HTTP server and use its URL.
     val imageUrl = ContextCompat.getDrawable(context, R.drawable.ic_baseline_edit_24)

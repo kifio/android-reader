@@ -31,6 +31,8 @@ fun BookshelfView(ctx: Context, viewModel: BookshelfViewModel, openFilePicker: (
                     .height(
                         WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 56.dp
                     ),
+                backgroundColor = MaterialTheme.colors.background,
+                contentColor = MaterialTheme.colors.onBackground,
                 title = { AppBarTitle(viewModel) },
                 actions = {
                     Image(
@@ -48,21 +50,11 @@ fun BookshelfView(ctx: Context, viewModel: BookshelfViewModel, openFilePicker: (
                 }
             )
         },
-        bottomBar = {
-            BottomNavigation(
-                modifier = Modifier
-                    .height(
-                        WindowInsets.navigationBars
-                            .asPaddingValues()
-                            .calculateBottomPadding() + 56.dp
-                    )
-                    .background(color = Color.Green),
-            ) {
-
+        content = { padding ->
+            Box(modifier = Modifier
+                .padding(padding)) {
+                Content(ctx, viewModel, openBook)
             }
-        },
-        content = {
-            Content(ctx, viewModel, openBook)
         }
     )
 

@@ -31,12 +31,14 @@
     </style>
 
     <style name="ReaderToolbarStyle" parent="Widget.MaterialComponents.Toolbar">
-        <item name="titleTextColor">@color/onSurface</item>
-        <item name="android:background">@color/secondary</item>
+        <item name="titleTextColor">@color/primary</item>
+        <item name="android:background">@color/background</item>
     </style>
 
     <style name="ReaderBottomAppBarStyle" parent="Widget.MaterialComponents.BottomAppBar">
-        <item name="android:background">@color/secondary</item>
+        <item name="android:background">@color/background</item>
     </style>
+
+
 
 </resources>

@@ -11,7 +11,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
-import android.widget.Toast
+import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
 import androidx.core.view.WindowCompat
@@ -83,6 +83,12 @@ open class ReaderActivity : AppCompatActivity() {
             }
         }
 
+        binding.pagesCount.applyInsetter {
+            type(navigationBars = true) {
+                margin(bottom = true)
+            }
+        }
+
         val readerFragment = supportFragmentManager.findFragmentByTag(READER_FRAGMENT_TAG)
             ?.let { it as VisualReaderFragment }
             ?: run { createReaderFragment(model.readerInitData) }
@@ -108,19 +114,24 @@ open class ReaderActivity : AppCompatActivity() {
                 menuInflater.inflate(R.menu.menu_reader, menu)
             }
 
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return false
-            }
+            override fun onMenuItemSelected(menuItem: MenuItem) = false
+        })
 
-//            override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//                when (item.itemId) {
-//                    android.R.id.home -> {
-//                        supportFragmentManager.popBackStack()
-//                        return true
-//                    }
-//                }
-//                return super.onOptionsItemSelected(item)
-//            }
+
+
+    }
+
+    private fun onViewModelReady() {
+        binding.bottomBarProgress.max = model.pagesCount
+
+        binding.bottomBarProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, userInitiated: Boolean) {}
+
+            override fun onStartTrackingTouch(p0: SeekBar) {}
+
+            override fun onStopTrackingTouch(p0: SeekBar) {
+                model.seekToPage(p0.progress)
+            }
         })
     }
 
@@ -155,11 +166,14 @@ open class ReaderActivity : AppCompatActivity() {
         super.finish()
     }
 
-    private fun handleReaderFragmentEvent(event: ReaderViewModel.Event) {
+    private fun handleReaderFragmentEvent(event: ReaderViewModel.ActivityEvent) {
         when(event) {
-            is ReaderViewModel.Event.OpenOutlineRequested -> showOutlineFragment()
-            is ReaderViewModel.Event.ToggleUIVisibilityRequested -> toggleUI(event.navigated)
-            is ReaderViewModel.Event.UpdateBookmarkRequested -> updateBookmarkIcon(event.isBookmarkedPage)
+            is ReaderViewModel.ActivityEvent.OpenOutlineRequested -> showOutlineFragment()
+            is ReaderViewModel.ActivityEvent.ViewModelReady -> onViewModelReady()
+            is ReaderViewModel.ActivityEvent.ToggleUIVisibilityRequested -> toggleUI(event.navigated)
+            is ReaderViewModel.ActivityEvent.UpdateBookmarkRequested -> updateBookmarkIcon(event.isBookmarkedPage)
+            is ReaderViewModel.ActivityEvent.UpdateCurrentPage -> updateCurrentPage(event.currentPage, event.totalCount)
+            is ReaderViewModel.ActivityEvent.UpdateProgressBar -> updateProgressBar(event.totalProgress)
         }
     }
 
@@ -196,5 +210,14 @@ open class ReaderActivity : AppCompatActivity() {
                 false -> R.drawable.ic_baseline_bookmark_border_24
             }
         )
+    }
+
+    private fun updateCurrentPage(page: Int, total: Int) {
+        binding.bottomBarPagesCount.text = "$page/$total"
+        binding.pagesCount.text = page.toString()
+    }
+
+    private fun updateProgressBar(progress: Double) {
+        binding.bottomBarProgress.progress = (progress * binding.bottomBarProgress.max).toInt()
     }
 }

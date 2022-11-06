@@ -16,21 +16,16 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import me.kifio.kreader.android.Application
-import org.readium.r2.navigator.Decoration
-import org.readium.r2.navigator.ExperimentalDecorator
-import org.readium.r2.shared.Search
-import org.readium.r2.shared.publication.*
-import org.readium.r2.shared.publication.services.search.SearchIterator
-import org.readium.r2.shared.publication.services.search.SearchTry
-import org.readium.r2.shared.util.Try
 import me.kifio.kreader.android.bookshelf.BookRepository
 import me.kifio.kreader.android.model.Bookmark
-import me.kifio.kreader.android.search.SearchPagingSource
 import me.kifio.kreader.android.utils.EventChannel
 import org.json.JSONObject
+import org.readium.r2.navigator.Decoration
+import org.readium.r2.navigator.ExperimentalDecorator
+import org.readium.r2.shared.publication.*
+import org.readium.r2.shared.publication.services.positions
 
 @OptIn(
-    Search::class,
     ExperimentalDecorator::class,
     ExperimentalCoroutinesApi::class,
 )
@@ -42,15 +37,19 @@ class ReaderViewModel(
     val publication: Publication =
         readerInitData.publication
 
+    val pagesCount: Int
+        get() = _positions.size
+
     val bookId: Long =
         readerInitData.bookId
 
-    val activityChannel: EventChannel<Event> =
+    val activityChannel: EventChannel<ActivityEvent> =
         EventChannel(Channel(Channel.BUFFERED), viewModelScope)
 
-    val fragmentChannel: EventChannel<FeedbackEvent> =
+    val fragmentChannel: EventChannel<FragmentEvent> =
         EventChannel(Channel(Channel.BUFFERED), viewModelScope)
 
+    private var _positions: MutableList<Locator> = mutableListOf()
     private var _bookmarks: MutableList<Bookmark> = mutableListOf()
     private var _locations: MutableList<Locator.Locations> = mutableListOf()
 
@@ -64,18 +63,34 @@ class ReaderViewModel(
         viewModelScope.launch {
             _bookmarks.addAll(bookRepository.bookmarksForBook(bookId = bookId))
             _locations.addAll(bookmarks.map { it.locations() })
+            _positions.addAll(publication.positions())
+            activityChannel.send(ActivityEvent.ViewModelReady)
         }
     }
 
-    fun saveProgression(locator: Locator) = viewModelScope.launch {
+    fun updateProgression(locator: Locator) = viewModelScope.launch {
         bookRepository.saveProgression(locator, bookId)
+        activityChannel.send(
+            ActivityEvent.UpdateCurrentPage(
+                locator.locations.position ?: -1,
+                publication.positions().size
+            )
+        )
+
+        var totalProgress: Double? = locator.locations.totalProgression
+
+        if (totalProgress == null) {
+            totalProgress = (locator.locations.position ?: 0).toDouble() / publication.positions().size
+        }
+
+        activityChannel.send(ActivityEvent.UpdateProgressBar(totalProgress))
     }
 
     fun insertBookmark(locator: Locator) = viewModelScope.launch {
         with(bookRepository.insertBookmark(bookId, publication, locator)) {
             _bookmarks.add(this)
             _locations.add(this.locations())
-            fragmentChannel.send(FeedbackEvent.BookmarkSuccessfullyAdded)
+            fragmentChannel.send(FragmentEvent.BookmarkSuccessfullyAdded)
         }
     }
 
@@ -94,7 +109,7 @@ class ReaderViewModel(
     fun deleteBookmark(id: Long) = viewModelScope.launch {
         _bookmarks.removeIf { it.id == id }
         bookRepository.deleteBookmark(id)
-        fragmentChannel.send(FeedbackEvent.BookmarkSuccessfullyRemoved)
+        fragmentChannel.send(FragmentEvent.BookmarkSuccessfullyRemoved)
     }
 
     fun Bookmark.locations(): Locator.Locations {
@@ -102,15 +117,19 @@ class ReaderViewModel(
     }
 
     fun updateBookmarkIcon(isBookmarkPage: Boolean) {
-        activityChannel.send(Event.UpdateBookmarkRequested(isBookmarkPage))
+        activityChannel.send(ActivityEvent.UpdateBookmarkRequested(isBookmarkPage))
     }
 
     fun toggleUIVisibility(navigated: Boolean) {
-        activityChannel.send(Event.ToggleUIVisibilityRequested(navigated))
+        activityChannel.send(ActivityEvent.ToggleUIVisibilityRequested(navigated))
     }
 
     fun openOutlineFragment() {
-        activityChannel.send(Event.OpenOutlineRequested)
+        activityChannel.send(ActivityEvent.OpenOutlineRequested)
+    }
+
+    fun seekToPage(page: Int) = viewModelScope.launch {
+        fragmentChannel.send(FragmentEvent.GoToLocator(_positions[page]))
     }
 
     val searchLocators: StateFlow<List<Locator>> get() = _searchLocators
@@ -134,37 +153,20 @@ class ReaderViewModel(
         }
     }
 
-    private var lastSearchQuery: String? = null
-
-    private var searchIterator: SearchIterator? = null
-
-    private val pagingSourceFactory = InvalidatingPagingSourceFactory {
-        SearchPagingSource(listener = PagingSourceListener())
-    }
-
-    inner class PagingSourceListener : SearchPagingSource.Listener {
-        override suspend fun next(): SearchTry<LocatorCollection?> {
-            val iterator = searchIterator ?: return Try.success(null)
-            return iterator.next().onSuccess {
-                _searchLocators.value += (it?.locators ?: emptyList())
-            }
-        }
-    }
-
-    val searchResult: Flow<PagingData<Locator>> =
-        Pager(PagingConfig(pageSize = 20), pagingSourceFactory = pagingSourceFactory)
-            .flow.cachedIn(viewModelScope)
-
-    sealed class Event {
-        object OpenOutlineRequested : Event()
-        data class ToggleUIVisibilityRequested(val navigated: Boolean) : Event()
-        data class UpdateBookmarkRequested(val isBookmarkedPage: Boolean) : Event()
+    sealed class ActivityEvent {
+        object OpenOutlineRequested : ActivityEvent()
+        object ViewModelReady : ActivityEvent()
+        data class ToggleUIVisibilityRequested(val navigated: Boolean) : ActivityEvent()
+        data class UpdateBookmarkRequested(val isBookmarkedPage: Boolean) : ActivityEvent()
+        data class UpdateCurrentPage(val currentPage: Int, val totalCount: Int) : ActivityEvent()
+        data class UpdateProgressBar(val totalProgress: Double) : ActivityEvent()
     }
 
 
-    sealed class FeedbackEvent {
-        object BookmarkSuccessfullyAdded : FeedbackEvent()
-        object BookmarkSuccessfullyRemoved : FeedbackEvent()
+    sealed class FragmentEvent {
+        object BookmarkSuccessfullyAdded : FragmentEvent()
+        object BookmarkSuccessfullyRemoved : FragmentEvent()
+        data class GoToLocator(val locator: Locator) : FragmentEvent()
     }
 
     class Factory(
