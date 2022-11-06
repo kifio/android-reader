@@ -67,8 +67,6 @@ dependencies {
     implementation("com.github.readium.kotlin-toolkit:readium-shared:$readium_version")
     implementation("com.github.readium.kotlin-toolkit:readium-streamer:$readium_version")
     implementation("com.github.readium.kotlin-toolkit:readium-navigator:$readium_version")
-    implementation("com.github.readium.kotlin-toolkit:readium-navigator-media2:$readium_version")
-    implementation("com.github.readium.kotlin-toolkit:readium-opds:$readium_version")
     implementation("com.github.readium.kotlin-toolkit:readium-lcp:$readium_version")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")

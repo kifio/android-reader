@@ -153,8 +153,6 @@ open class ReaderActivity : AppCompatActivity() {
                 EpubReaderFragment::class.java
             readerData.publication.conformsTo(Publication.Profile.PDF) ->
                 PdfReaderFragment::class.java
-            readerData.publication.conformsTo(Publication.Profile.DIVINA) ->
-                ImageReaderFragment::class.java
             else ->
                 // The Activity should stop as soon as possible because readerData are fake.
                 null

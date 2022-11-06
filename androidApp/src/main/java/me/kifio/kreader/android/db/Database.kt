@@ -14,11 +14,10 @@ import androidx.room.TypeConverters
 import me.kifio.kreader.android.model.*
 
 @Database(
-    entities = [Book::class, Bookmark::class, Highlight::class, Catalog::class],
+    entities = [Book::class, Bookmark::class],
     version = 1,
     exportSchema = false
 )
-@TypeConverters(HighlightConverters::class)
 abstract class BookDatabase : RoomDatabase() {
 
     abstract fun booksDao(): BooksDao

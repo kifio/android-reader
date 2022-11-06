@@ -8,9 +8,8 @@ package me.kifio.kreader.android.reader
 
 import android.app.Application
 import android.content.Context
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import me.kifio.kreader.android.bookshelf.BookRepository
 import org.json.JSONObject
-import org.readium.navigator.media2.ExperimentalMedia2
 import org.readium.r2.shared.Injectable
 import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
@@ -20,7 +19,6 @@ import org.readium.r2.shared.publication.services.protectionError
 import org.readium.r2.shared.util.Try
 import org.readium.r2.streamer.Streamer
 import org.readium.r2.streamer.server.Server
-import me.kifio.kreader.android.bookshelf.BookRepository
 import java.io.File
 import java.net.URL
 
@@ -31,7 +29,6 @@ import java.net.URL
  * Pass the method result to the activity to enable it to know which current publication it must
  * retrieve from this repository - media or visual.
  */
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalMedia2::class)
 class ReaderRepository(
     private val application: Application,
     private val streamer: Streamer,
@@ -102,9 +99,6 @@ class ReaderRepository(
 
     fun close(bookId: Long) {
         when (val initData = repository.remove(bookId)) {
-            is MediaReaderInitData -> {
-
-            }
             is VisualReaderInitData -> {
                 initData.publication.close()
             }

@@ -88,12 +88,6 @@ private class OutlineFragmentStateAdapter(fragment: Fragment, val publication: P
                 else -> mutableListOf()
             }
         )
-
-    private fun createPageListFragment() =
-        NavigationFragment.newInstance(publication.pageList)
-
-    private fun createLandmarksFragment() =
-        NavigationFragment.newInstance(publication.landmarks)
 }
 
 private enum class Outline(val label: Int) {

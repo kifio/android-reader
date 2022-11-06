@@ -6,16 +6,12 @@
 
 package me.kifio.kreader.android.db
 
-import androidx.annotation.ColorInt
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import kotlinx.coroutines.flow.Flow
 import me.kifio.kreader.android.model.Book
 import me.kifio.kreader.android.model.Bookmark
-import me.kifio.kreader.android.model.Highlight
 
 
 @Dao
@@ -66,36 +62,10 @@ interface BooksDao {
     suspend fun insertBookmark(bookmark: Bookmark): Long
 
     /**
-     * Inserts a highlight
-     * @param highlight The highlight to insert
-     * @return The ID of the highlight that was added (primary key)
-     */
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertHighlight(highlight: Highlight): Long
-
-    /**
-     * Updates a highlight's annotation.
-     */
-    @Query("UPDATE ${Highlight.TABLE_NAME} SET ${Highlight.ANNOTATION} = :annotation WHERE ${Highlight.ID} = :id")
-    suspend fun updateHighlightAnnotation(id: Long, annotation: String)
-
-    /**
-     * Updates a highlight's tint and style.
-     */
-    @Query("UPDATE ${Highlight.TABLE_NAME} SET ${Highlight.TINT} = :tint, ${Highlight.STYLE} = :style WHERE ${Highlight.ID} = :id")
-    suspend fun updateHighlightStyle(id: Long, style: Highlight.Style, @ColorInt tint: Int)
-
-    /**
      * Deletes a bookmark
      */
     @Query("DELETE FROM " + Bookmark.TABLE_NAME + " WHERE " + Bookmark.ID + " = :id")
     suspend fun deleteBookmark(id: Long)
-
-    /**
-     * Deletes the highlight with given id.
-     */
-    @Query("DELETE FROM ${Highlight.TABLE_NAME} WHERE ${Highlight.ID} = :id")
-    suspend fun deleteHighlight(id: Long)
 
     /**
      * Saves book progression

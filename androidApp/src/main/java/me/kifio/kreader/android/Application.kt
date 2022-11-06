@@ -10,13 +10,13 @@ import android.content.*
 import android.os.IBinder
 import kotlinx.coroutines.*
 import me.kifio.kreader.android.BuildConfig.DEBUG
-import org.readium.r2.lcp.LcpService
 import org.readium.r2.shared.util.Try
 import org.readium.r2.streamer.Streamer
 import org.readium.r2.streamer.server.Server
 import me.kifio.kreader.android.bookshelf.BookRepository
 import me.kifio.kreader.android.db.BookDatabase
 import me.kifio.kreader.android.reader.ReaderRepository
+import org.readium.r2.lcp.LcpService
 import java.io.IOException
 import java.net.ServerSocket
 import java.util.*
@@ -51,14 +51,10 @@ class Application : android.app.Application() {
          * Initializing repositories
          */
 
-        val lcpService = LcpService(this)
-            ?.let { Try.success(it) }
-            ?: Try.failure(Exception("liblcp is missing on the classpath"))
-
         val streamer = Streamer(
             this,
             contentProtections = listOfNotNull(
-                lcpService.getOrNull()?.contentProtection()
+                LcpService(this)?.contentProtection()
             )
         )
 

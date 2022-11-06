@@ -1,6 +1,5 @@
 package me.kifio.kreader.android.bookshelf
 
-import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
@@ -11,36 +10,23 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.kifio.kreader.android.Application
-import me.kifio.kreader.android.db.BookDatabase
 import me.kifio.kreader.android.model.Book
-import me.kifio.kreader.android.reader.ReaderActivityContract
-import me.kifio.kreader.android.reader.ReaderInitData
 import me.kifio.kreader.android.reader.ReaderRepository
-import me.kifio.kreader.android.reader.VisualReaderInitData
 import me.kifio.kreader.android.utils.extensions.copyToLocalFile
 import me.kifio.kreader.android.utils.extensions.screenWidth
-import org.json.JSONObject
-import org.readium.r2.lcp.LcpService
-import org.readium.r2.shared.Injectable
 import org.readium.r2.shared.UserException
 import org.readium.r2.shared.extensions.mediaType
 import org.readium.r2.shared.extensions.tryOrNull
-import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
 import org.readium.r2.shared.publication.asset.FileAsset
 import org.readium.r2.shared.publication.services.coverFitting
-import org.readium.r2.shared.publication.services.isRestricted
-import org.readium.r2.shared.publication.services.protectionError
-import org.readium.r2.shared.util.Try
 import org.readium.r2.streamer.Streamer
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.net.URL
 
 sealed class BookShelfError {
     object BookNotAddedError : BookShelfError()

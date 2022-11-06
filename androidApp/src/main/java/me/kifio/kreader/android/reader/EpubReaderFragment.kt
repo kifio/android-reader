@@ -49,7 +49,6 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
 
     private lateinit var publication: Publication
     private lateinit var navigatorFragment: EpubNavigatorFragment
-    private lateinit var menuSearch: MenuItem
     private lateinit var userSettings: UserSettings
     private var isScreenReaderVisible = false
     private var isSearchViewIconified = true
@@ -79,11 +78,7 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
                 baseUrl = baseUrl,
                 initialLocator = readerData.initialLocation,
                 listener = this,
-                config = EpubNavigatorFragment.Configuration().apply {
-                    // Register the HTML template for our custom [DecorationStyleAnnotationMark].
-                    decorationTemplates[DecorationStyleAnnotationMark::class] =
-                        annotationMarkTemplate(requireActivity())
-                }
+                config = EpubNavigatorFragment.Configuration()
             )
     }
 
@@ -168,49 +163,4 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
 
         private const val IS_SEARCH_VIEW_ICONIFIED = "isSearchViewIconified"
     }
-}
-
-/**
- * Example of an HTML template for a custom Decoration Style.
- *
- * This one will display a tinted "pen" icon in the page margin to show that a highlight has an
- * associated note.
- */
-@OptIn(ExperimentalDecorator::class)
-private fun annotationMarkTemplate(
-    context: Context,
-    @ColorInt defaultTint: Int = Color.YELLOW
-): HtmlDecorationTemplate {
-    // Converts the pen icon to a base 64 data URL, to be embedded in the decoration stylesheet.
-    // Alternatively, serve the image with the local HTTP server and use its URL.
-    val imageUrl = ContextCompat.getDrawable(context, R.drawable.ic_baseline_edit_24)
-        ?.toBitmap()?.toDataUrl()
-    requireNotNull(imageUrl)
-
-    val className = "testapp-annotation-mark"
-    return HtmlDecorationTemplate(
-        layout = HtmlDecorationTemplate.Layout.BOUNDS,
-        width = HtmlDecorationTemplate.Width.PAGE,
-        element = { decoration ->
-            val style = decoration.style as? DecorationStyleAnnotationMark
-            val tint = style?.tint ?: defaultTint
-            // Using `data-activable=1` prevents the whole decoration container from being
-            // clickable. Only the icon will respond to activation events.
-            """
-            <div><div data-activable="1" class="$className" style="background-color: ${tint.toCss()} !important"/></div>"
-            """
-        },
-        stylesheet = """
-            .$className {
-                float: left;
-                margin-left: 8px;
-                width: 30px;
-                height: 30px;
-                border-radius: 50%;
-                background: url('$imageUrl') no-repeat center;
-                background-size: auto 50%;
-                opacity: 0.8;
-            }
-            """
-    )
 }

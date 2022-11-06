@@ -6,18 +6,14 @@
 
 package me.kifio.kreader.android.bookshelf
 
-import androidx.annotation.ColorInt
-import androidx.lifecycle.LiveData
-import kotlinx.coroutines.flow.Flow
+import me.kifio.kreader.android.db.BooksDao
+import me.kifio.kreader.android.model.Book
+import me.kifio.kreader.android.model.Bookmark
+import me.kifio.kreader.android.utils.extensions.authorName
 import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
 import org.readium.r2.shared.publication.indexOfFirstWithHref
 import org.readium.r2.shared.util.mediatype.MediaType
-import me.kifio.kreader.android.db.BooksDao
-import me.kifio.kreader.android.model.Book
-import me.kifio.kreader.android.model.Bookmark
-import me.kifio.kreader.android.model.Highlight
-import me.kifio.kreader.android.utils.extensions.authorName
 
 class BookRepository(private val booksDao: BooksDao) {
 
