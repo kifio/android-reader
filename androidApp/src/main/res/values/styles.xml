@@ -1,4 +1,4 @@
-<resources xmlns:app="http://schemas.android.com/apk/res-auto">
+<resources>
     <style name="AppTheme" parent="Theme.MaterialComponents.NoActionBar">
 
         <item name="android:navigationBarColor">
@@ -23,11 +23,6 @@
         <item name="windowNoTitle">true</item>
         <item name="android:popupAnimationStyle">@null</item>
 
-    </style>
-
-    <style name="TabWidgetTheme" parent="AppTheme">
-        <item name="android:textSize">10sp</item>
-        <item name="android:textAlignment">center</item>
     </style>
 
     <style name="ReaderToolbarStyle" parent="Widget.MaterialComponents.Toolbar">

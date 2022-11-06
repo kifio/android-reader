@@ -8,9 +8,9 @@ package me.kifio.kreader.android.utils.extensions
 
 import android.content.Context
 import android.net.Uri
+import me.kifio.kreader.android.utils.ContentResolverUtil
 import org.readium.r2.shared.extensions.tryOrNull
 import org.readium.r2.shared.util.mediatype.MediaType
-import me.kifio.kreader.android.utils.ContentResolverUtil
 import java.io.File
 import java.util.*
 

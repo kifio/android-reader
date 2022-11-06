@@ -18,11 +18,11 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.parcelize.Parcelize
+import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentReaderBinding
 import me.kifio.kreader.android.utils.*
 import org.readium.r2.navigator.*
 import org.readium.r2.navigator.util.EdgeTapNavigation
-import me.kifio.kreader.android.R
 import org.readium.r2.shared.publication.Locator
 
 /*

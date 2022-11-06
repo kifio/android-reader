@@ -13,12 +13,12 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.commitNow
 import androidx.lifecycle.ViewModelProvider
+import me.kifio.kreader.android.R
 import org.readium.r2.navigator.Navigator
 import org.readium.r2.navigator.pdf.PdfNavigatorFragment
 import org.readium.r2.shared.fetcher.Resource
 import org.readium.r2.shared.publication.Link
 import org.readium.r2.shared.publication.Publication
-import me.kifio.kreader.android.R
 
 class PdfReaderFragment : VisualReaderFragment(), PdfNavigatorFragment.Listener {
 

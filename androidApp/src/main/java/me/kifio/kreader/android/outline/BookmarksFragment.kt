@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.ViewModelProvider
@@ -18,15 +17,13 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import org.readium.r2.shared.publication.Publication
-import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentListviewBinding
 import me.kifio.kreader.android.databinding.ItemRecycleBookmarkBinding
 import me.kifio.kreader.android.model.Bookmark
 import me.kifio.kreader.android.reader.ReaderViewModel
 import me.kifio.kreader.android.utils.extensions.outlineTitle
 import me.kifio.kreader.android.utils.viewLifecycle
-import java.time.LocalDate
+import org.readium.r2.shared.publication.Publication
 import kotlin.math.roundToInt
 
 class BookmarksFragment : Fragment() {

@@ -6,40 +6,24 @@
 
 package me.kifio.kreader.android.reader
 
-import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.view.accessibility.AccessibilityManager
-import android.view.inputmethod.InputMethodManager
-import android.widget.ImageView
-import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.toBitmap
-import androidx.fragment.app.FragmentResultListener
-import androidx.fragment.app.commit
 import androidx.fragment.app.commitNow
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.viewpager.widget.ViewPager
-import com.github.barteksc.pdfviewer.listener.OnPageChangeListener
 import kotlinx.coroutines.delay
+import me.kifio.kreader.android.R
+import me.kifio.kreader.android.epub.UserSettings
 import org.readium.r2.navigator.ExperimentalDecorator
 import org.readium.r2.navigator.Navigator
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
-import org.readium.r2.navigator.html.HtmlDecorationTemplate
-import org.readium.r2.navigator.html.toCss
 import org.readium.r2.shared.APPEARANCE_REF
 import org.readium.r2.shared.ReadiumCSSName
 import org.readium.r2.shared.SCROLL_REF
-import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
-import me.kifio.kreader.android.R
-import me.kifio.kreader.android.epub.UserSettings
-import me.kifio.kreader.android.utils.extensions.toDataUrl
 
 @OptIn(ExperimentalDecorator::class)
 class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listener {

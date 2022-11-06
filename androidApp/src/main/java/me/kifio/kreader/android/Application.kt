@@ -6,17 +6,19 @@
 
 package me.kifio.kreader.android
 
-import android.content.*
-import android.os.IBinder
-import kotlinx.coroutines.*
+import android.content.ContentResolver
+import android.content.Context
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.async
 import me.kifio.kreader.android.BuildConfig.DEBUG
-import org.readium.r2.shared.util.Try
-import org.readium.r2.streamer.Streamer
-import org.readium.r2.streamer.server.Server
 import me.kifio.kreader.android.bookshelf.BookRepository
 import me.kifio.kreader.android.db.BookDatabase
 import me.kifio.kreader.android.reader.ReaderRepository
 import org.readium.r2.lcp.LcpService
+import org.readium.r2.streamer.Streamer
+import org.readium.r2.streamer.server.Server
 import java.io.IOException
 import java.net.ServerSocket
 import java.util.*

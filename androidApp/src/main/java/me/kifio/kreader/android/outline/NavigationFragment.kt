@@ -15,13 +15,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.*
-import org.readium.r2.shared.publication.Link
-import org.readium.r2.shared.publication.Publication
 import me.kifio.kreader.android.databinding.FragmentListviewBinding
 import me.kifio.kreader.android.databinding.ItemRecycleNavigationBinding
 import me.kifio.kreader.android.reader.ReaderViewModel
 import me.kifio.kreader.android.utils.extensions.outlineTitle
 import me.kifio.kreader.android.utils.viewLifecycle
+import org.readium.r2.shared.publication.Link
+import org.readium.r2.shared.publication.Publication
 
 /*
 * Fragment to show navigation links (Table of Contents, Page lists & Landmarks)

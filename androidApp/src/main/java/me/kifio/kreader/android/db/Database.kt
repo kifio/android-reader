@@ -10,8 +10,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
-import me.kifio.kreader.android.model.*
+import me.kifio.kreader.android.model.Book
+import me.kifio.kreader.android.model.Bookmark
 
 @Database(
     entities = [Book::class, Bookmark::class],

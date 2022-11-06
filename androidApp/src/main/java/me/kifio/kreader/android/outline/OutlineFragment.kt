@@ -11,20 +11,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentResultListener
 import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.tabs.TabLayoutMediator
-import org.readium.r2.shared.publication.Publication
-import org.readium.r2.shared.publication.epub.landmarks
-import org.readium.r2.shared.publication.epub.pageList
-import org.readium.r2.shared.publication.opds.images
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentOutlineBinding
 import me.kifio.kreader.android.reader.ReaderActivity
 import me.kifio.kreader.android.reader.ReaderViewModel
 import me.kifio.kreader.android.utils.viewLifecycle
+import org.readium.r2.shared.publication.Publication
+import org.readium.r2.shared.publication.opds.images
 
 class OutlineFragment : Fragment() {
 
