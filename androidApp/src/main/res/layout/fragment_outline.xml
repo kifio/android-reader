@@ -8,23 +8,39 @@
   ~ LICENSE file present in the project repository where this source code is maintained.
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/outline_tab_layout"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:tabMode="scrollable"
-        app:tabGravity="start"/>
+        android:background="@color/background"/>
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/outline_pager"
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/navigate_up"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:elevation="16dp"
+        android:padding="16dp"
+        android:src="@drawable/ic_baseline_arrow_back_24" />
+
+    <com.google.android.material.textview.MaterialTextView
+        style="@style/TextAppearance.MaterialComponents.Headline6"
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="?android:attr/actionBarSize"
+        android:textColor="@color/primary"
+        android:background="@color/secondary"
+        android:gravity="center"
+        android:layout_gravity="center_horizontal|top" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/outline_content_conatiner"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_height="match_parent"
+        android:layout_marginTop="?android:attr/actionBarSize" />
 
-</LinearLayout>
+</FrameLayout>

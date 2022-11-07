@@ -11,8 +11,10 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import android.view.View
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.os.bundleOf
 import androidx.core.view.MenuProvider
 import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
@@ -41,6 +43,7 @@ open class ReaderActivity : AppCompatActivity() {
     private lateinit var model: ReaderViewModel
     private lateinit var binding: ActivityReaderBinding
     private lateinit var readerFragment: VisualReaderFragment
+    private var buttonClicked: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val arguments = ReaderActivityContract.parseIntent(this)
@@ -71,9 +74,9 @@ open class ReaderActivity : AppCompatActivity() {
             }
         }
 
-        binding.activityContainer.applyInsetter {
-            type(navigationBars = true) {
-                margin(bottom = true)
+        binding.contentContainer.applyInsetter {
+            type(statusBars = true, navigationBars = true) {
+                margin(bottom = true, top = true)
             }
         }
 
@@ -95,15 +98,28 @@ open class ReaderActivity : AppCompatActivity() {
             }
         }
 
-        binding.outline.applyInsetter {
+        binding.contents.applyInsetter {
             type(statusBars = true) {
                 margin(top = true)
             }
         }
 
-        val readerFragment = supportFragmentManager.findFragmentByTag(READER_FRAGMENT_TAG)
-            ?.let { it as VisualReaderFragment }
-            ?: run { createReaderFragment(model.readerInitData) }
+        binding.bookmarks.applyInsetter {
+            type(statusBars = true) {
+                margin(top = true)
+            }
+        }
+
+        binding.outlineContainer.applyInsetter {
+            type(statusBars = true, navigationBars = true) {
+                margin(bottom = true, top = true)
+            }
+        }
+
+        val readerFragment =
+            supportFragmentManager.findFragmentByTag(VisualReaderFragment::class.simpleName)
+                ?.let { it as VisualReaderFragment }
+                ?: run { createReaderFragment(model.readerInitData) }
 
         readerFragment?.let { this.readerFragment = it }
 
@@ -131,13 +147,29 @@ open class ReaderActivity : AppCompatActivity() {
 
         supportActionBar?.setDisplayHomeAsUpEnabled(false)
 
-        binding.outline.setOnClickListener { showOutlineFragment() }
+        binding.contents.setOnClickListener {
+            handleClick(it) { showOutlineFragment(OutlineFragment.Outline.Contents) }
+        }
+
+        binding.bookmarks.setOnClickListener {
+            handleClick(it) { showOutlineFragment(OutlineFragment.Outline.Bookmarks) }
+        }
+
+        binding.navigateUp.setOnClickListener {
+            finishAfterTransition()
+        }
     }
 
     private fun onViewModelReady() {
         binding.bottomBarProgress.max = model.pagesCount
-        binding.bottomBarProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, userInitiated: Boolean) {}
+        binding.bottomBarProgress.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(
+                seekBar: SeekBar,
+                progress: Int,
+                userInitiated: Boolean
+            ) {
+            }
 
             override fun onStartTrackingTouch(p0: SeekBar) {}
 
@@ -160,11 +192,11 @@ open class ReaderActivity : AppCompatActivity() {
 
         readerClass?.let { it ->
             supportFragmentManager.commitNow {
-                add(R.id.activity_container, it, Bundle(), READER_FRAGMENT_TAG)
+                add(R.id.content_container, it, Bundle(), VisualReaderFragment::class.simpleName)
             }
         }
 
-        return supportFragmentManager.findFragmentByTag(READER_FRAGMENT_TAG) as VisualReaderFragment?
+        return supportFragmentManager.findFragmentByTag(VisualReaderFragment::class.simpleName) as VisualReaderFragment?
     }
 
     override fun getDefaultViewModelProviderFactory(): ViewModelProvider.Factory {
@@ -177,38 +209,54 @@ open class ReaderActivity : AppCompatActivity() {
     }
 
     private fun handleReaderFragmentEvent(event: ReaderViewModel.ActivityEvent) {
-        when(event) {
-            is ReaderViewModel.ActivityEvent.OpenOutlineRequested -> showOutlineFragment()
-            is ReaderViewModel.ActivityEvent.ViewModelReady -> onViewModelReady()
+        when (event) {
+            ReaderViewModel.ActivityEvent.ViewModelReady -> onViewModelReady()
+            ReaderViewModel.ActivityEvent.FragmentOnBackPressed -> fragmentBackPressed()
             is ReaderViewModel.ActivityEvent.ToggleUIVisibilityRequested -> toggleUI(event.navigated)
             is ReaderViewModel.ActivityEvent.UpdateBookmarkRequested -> updateBookmarkIcon(event.isBookmarkedPage)
-            is ReaderViewModel.ActivityEvent.UpdateCurrentPage -> updateCurrentPage(event.currentPage, event.totalCount)
+            is ReaderViewModel.ActivityEvent.UpdateCurrentPage -> updateCurrentPage(
+                event.currentPage,
+                event.totalCount
+            )
             is ReaderViewModel.ActivityEvent.UpdateProgressBar -> updateProgressBar(event.totalProgress)
         }
     }
 
-    private fun showOutlineFragment() {
+    private fun showOutlineFragment(outline: OutlineFragment.Outline) {
+        binding.outlineContainer.isVisible = true
         supportFragmentManager.commit {
-            add(R.id.activity_container, OutlineFragment::class.java, Bundle(), OUTLINE_FRAGMENT_TAG)
-            hide(readerFragment)
-            addToBackStack(null)
+            add(
+                R.id.outline_container,
+                OutlineFragment.newInstance(outline), OutlineFragment::class.simpleName
+            )
+            addToBackStack(OutlineFragment::class.simpleName)
         }
     }
 
     private fun closeOutlineFragment(locator: Locator) {
+        fragmentBackPressed()
         readerFragment.go(locator, true)
-        supportFragmentManager.popBackStack()
     }
 
-    companion object {
-        const val READER_FRAGMENT_TAG = "reader"
-        const val OUTLINE_FRAGMENT_TAG = "outline"
+    private fun fragmentBackPressed() {
+        binding.outlineContainer.isVisible = false
+    }
+
+    private fun handleClick(view: View, action: (View) -> Unit) {
+        buttonClicked = true
+        view.post {
+            action(view)
+            buttonClicked = false
+        }
     }
 
     private fun toggleUI(navigated: Boolean) {
         if (navigated) return
-        with (supportActionBar?.isShowing != true) {
+        with(supportActionBar?.isShowing != true) {
             binding.appBar.isVisible = this
+            binding.navigateUp.isVisible = this
+            binding.bookmarks.isVisible = this
+            binding.contents.isVisible = this
             binding.bottomAppBar.isVisible = this
         }
     }

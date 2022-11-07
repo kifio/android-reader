@@ -124,8 +124,8 @@ class ReaderViewModel(
         activityChannel.send(ActivityEvent.ToggleUIVisibilityRequested(navigated))
     }
 
-    fun openOutlineFragment() {
-        activityChannel.send(ActivityEvent.OpenOutlineRequested)
+    fun fragmentBackPressed() {
+        activityChannel.send(ActivityEvent.FragmentOnBackPressed)
     }
 
     fun seekToPage(page: Int) = viewModelScope.launch {
@@ -154,8 +154,8 @@ class ReaderViewModel(
     }
 
     sealed class ActivityEvent {
-        object OpenOutlineRequested : ActivityEvent()
         object ViewModelReady : ActivityEvent()
+        object FragmentOnBackPressed : ActivityEvent()
         data class ToggleUIVisibilityRequested(val navigated: Boolean) : ActivityEvent()
         data class UpdateBookmarkRequested(val isBookmarkedPage: Boolean) : ActivityEvent()
         data class UpdateCurrentPage(val currentPage: Int, val totalCount: Int) : ActivityEvent()

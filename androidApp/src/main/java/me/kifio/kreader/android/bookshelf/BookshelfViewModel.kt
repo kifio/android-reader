@@ -29,10 +29,8 @@ import java.io.FileOutputStream
 import java.io.IOException
 
 sealed class BookShelfError {
-    object BookNotAddedError : BookShelfError()
+    object BookAlreadyExist : BookShelfError()
     object FileNotCreatedError : BookShelfError()
-    object BookAlreadyOpenedError : BookShelfError()
-    object FileNotFoundError : BookShelfError()
     object PublicationOpeningError : BookShelfError()
 }
 
@@ -55,24 +53,29 @@ class BookshelfViewModel : ViewModel() {
         }
     }
 
-    fun loadBooks() {
+    private fun loadBooks() {
         viewModelScope.launch(context = Dispatchers.IO) {
             val books = booksRepository?.books()
             withContext(context = Dispatchers.Main) {
-                shelfState = when (books == null) {
-                    true -> null
-                    false -> books
-                }
+                shelfState = books
             }
         }
     }
 
     fun saveBookToLocalStorage(ctx: Context, uri: Uri) {
         viewModelScope.launch(context = Dispatchers.Default) {
-            when (val localFile = uri.copyToLocalFile(ctx, ctx.filesDir.absolutePath)) {
+            when (val localFile = uri.copyToLocalFile(ctx)) {
                 null -> errorsState = BookShelfError.FileNotCreatedError
                 else -> importPublication(ctx = ctx, localFile = localFile)
             }
+            loadBooks()
+        }
+    }
+
+    fun deleteBook(book: Book) {
+        viewModelScope.launch(context = Dispatchers.IO) {
+            booksRepository?.deleteBook(book.id)
+            File(book.href).delete()
             loadBooks()
         }
     }
@@ -83,20 +86,26 @@ class BookshelfViewModel : ViewModel() {
 
         streamer?.open(libraryAsset, allowUserInteraction = false)
             ?.onSuccess { publication ->
-                try {
+
+                val alreadyExist = booksRepo.books().any {
+                    it.identifier == publication.metadata.identifier
+                }
+
+                if (alreadyExist) {
+                    errorsState = BookShelfError.BookAlreadyExist
+                } else {
                     val id = booksRepo.insertBook(
                         libraryAsset.file.path,
                         localFile.mediaType(),
                         publication
                     )
-                    val coverPath = storeCoverImage(ctx, id, publication)
-                } catch (e: java.lang.IllegalArgumentException) {
-                    e.printStackTrace()
-                    errorsState = BookShelfError.BookNotAddedError
+
+                    storeCoverImage(ctx, id, publication)
                 }
             }
             ?.onFailure { e ->
-                tryOrNull { localFile.delete() }
+                e.printStackTrace()
+                localFile.delete()
             }
     }
 
@@ -144,10 +153,6 @@ class BookshelfViewModel : ViewModel() {
                 if (exception is ReaderRepository.CancellationException)
                     return@launch
 
-                val message = when (exception) {
-                    is UserException -> exception.getUserMessage(ctx)
-                    else -> exception.message
-                }
                 withContext(Dispatchers.Main) {
                     errorsState = BookShelfError.PublicationOpeningError
                 }
@@ -160,5 +165,9 @@ class BookshelfViewModel : ViewModel() {
     fun closeBook(ctx: Context, bookId: Long) = viewModelScope.launch {
         val readerRepository = (ctx.applicationContext as Application).readerRepository.await()
         readerRepository.close(bookId)
+    }
+
+    fun clearError() {
+        errorsState = null
     }
 }

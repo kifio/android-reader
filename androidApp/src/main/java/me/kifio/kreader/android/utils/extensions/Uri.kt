@@ -7,17 +7,37 @@
 package me.kifio.kreader.android.utils.extensions
 
 import android.content.Context
+import android.database.Cursor
 import android.net.Uri
-import me.kifio.kreader.android.utils.ContentResolverUtil
+import android.provider.OpenableColumns
 import org.readium.r2.shared.extensions.tryOrNull
-import org.readium.r2.shared.util.mediatype.MediaType
 import java.io.File
 import java.util.*
 
-suspend fun Uri.copyToLocalFile(context: Context, dir: String): File? = tryOrNull {
-    val filename = UUID.randomUUID().toString()
-    val mediaType = MediaType.ofUri(this, context.contentResolver)
-    val path = "$dir$filename.${mediaType?.fileExtension ?: "tmp"}"
-    ContentResolverUtil.getContentInputStream(context, this, path)
-    return@tryOrNull File(path)
+fun Uri.copyToLocalFile(context: Context): File? {
+    val filename = getNameFromURI(context, this)
+    val out = File(context.filesDir, filename)
+
+    context.contentResolver.openInputStream(this).use { input ->
+        out.outputStream().use { input?.copyTo(it) }
+    }
+
+    return out
+}
+
+private fun getNameFromURI(context: Context, uri: Uri): String {
+    var result: String? = null
+    var cursor: Cursor? = null
+    try {
+        cursor = context.contentResolver.query(uri, null, null, null, null)
+        cursor?.let {
+            it.moveToFirst()
+            result = it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    } finally {
+        cursor?.close()
+    }
+    return result ?: UUID.randomUUID().toString()
 }

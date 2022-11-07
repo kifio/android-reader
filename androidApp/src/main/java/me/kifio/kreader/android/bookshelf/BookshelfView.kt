@@ -1,14 +1,23 @@
 package me.kifio.kreader.android.bookshelf
 
 import android.content.Context
+import android.widget.Toast
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -22,7 +31,12 @@ import me.kifio.kreader.android.model.Book
 import java.io.File
 
 @Composable
-fun BookshelfView(ctx: Context, viewModel: BookshelfViewModel, openFilePicker: () -> Unit, openBook: (Long) -> Unit) =
+fun BookshelfView(
+    ctx: Context,
+    viewModel: BookshelfViewModel,
+    openFilePicker: () -> Unit,
+    openBook: (Long) -> Unit
+) =
     Scaffold(
         topBar = {
             TopAppBar(
@@ -50,8 +64,10 @@ fun BookshelfView(ctx: Context, viewModel: BookshelfViewModel, openFilePicker: (
             )
         },
         content = { padding ->
-            Box(modifier = Modifier
-                .padding(padding)) {
+            Box(
+                modifier = Modifier
+                    .padding(padding)
+            ) {
                 Content(ctx, viewModel, openBook)
             }
         }
@@ -62,7 +78,7 @@ fun AppBarTitle(viewModel: BookshelfViewModel) {
     Text(
         modifier = Modifier
             .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()),
-        text = "Bookshelf",
+        text = stringResource(id = R.string.bookshelf_screen_title),
         color = Color.Black,
         style = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.Bold),
     )
@@ -71,19 +87,102 @@ fun AppBarTitle(viewModel: BookshelfViewModel) {
 @Composable
 fun Content(ctx: Context, viewModel: BookshelfViewModel, openBook: (Long) -> Unit) {
     val books = viewModel.shelfState
-    when (books != null) {
-        true -> BookshelfContent(ctx = ctx, books = books, viewModel = viewModel, openBook = openBook)
-        false -> ProgressBar()
+    when (viewModel.errorsState) {
+        BookShelfError.BookAlreadyExist -> Toast.makeText(
+            ctx,
+            stringResource(id = R.string.book_already_exist),
+            Toast.LENGTH_SHORT
+        ).show()
+        BookShelfError.FileNotCreatedError -> Toast.makeText(
+            ctx,
+            stringResource(id = R.string.file_not_created_error),
+            Toast.LENGTH_SHORT
+        ).show()
+        BookShelfError.PublicationOpeningError -> Toast.makeText(
+            ctx,
+            stringResource(id = R.string.publication_opening_error),
+            Toast.LENGTH_SHORT
+        ).show()
+        null -> {}
+    }
+    viewModel.clearError()
+    when {
+        books == null -> ProgressBar()
+        books.isEmpty() -> Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                color = Color.Black,
+                style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Medium),
+                text = stringResource(id = R.string.bookshelf_is_empty))
+        }
+        else -> BookshelfContent(
+            ctx = ctx,
+            books = books,
+            viewModel = viewModel,
+            openBook = openBook
+        )
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun BookshelfContent(ctx: Context, books: List<Book>, viewModel: BookshelfViewModel, openBook: (Long) -> Unit) {
+fun BookshelfContent(
+    ctx: Context,
+    books: List<Book>,
+    viewModel: BookshelfViewModel,
+    openBook: (Long) -> Unit
+) {
     LazyColumn(
 
     ) {
         items(books.size) { index ->
-            BookItem(ctx = ctx, book = books[index], viewModel = viewModel, openBook = openBook)
+            val dismissState = rememberDismissState(
+                initialValue = DismissValue.Default,
+                confirmStateChange = {
+//                    if (it == DismissValue.DismissedToStart) {
+//                        viewModel.deleteBook(books[index])
+//                    }
+                    true
+                }
+            )
+
+            SwipeToDismiss(
+                state = dismissState,
+                directions = setOf(DismissDirection.EndToStart),
+                dismissThresholds = { FractionalThreshold(0.2f) },
+                background = {
+
+                    val color by animateColorAsState(
+                        when (dismissState.targetValue) {
+                            DismissValue.Default -> Color.White
+                            else -> Color.Red
+                        }
+                    )
+
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(color),
+                        contentAlignment = Alignment.CenterEnd,
+                    ) {
+                        if (dismissState.targetValue != DismissValue.Default) {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = "Delete Icon",
+                            )
+                        }
+                    }
+                },
+                dismissContent = {
+                    BookItem(
+                        ctx = ctx,
+                        book = books[index],
+                        viewModel = viewModel,
+                        openBook = openBook
+                    )
+                })
         }
     }
 }
@@ -92,9 +191,9 @@ fun BookshelfContent(ctx: Context, books: List<Book>, viewModel: BookshelfViewMo
 fun ProgressBar() {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
-        CircularProgressIndicator()
+        CircularProgressIndicator(color = MaterialTheme.colors.onBackground)
     }
 }
 

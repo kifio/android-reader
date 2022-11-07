@@ -9,9 +9,14 @@
   -->
 
 <resources>
-    <string name="epubactivity_set_bookmark">Add a bookmark</string>
-    <string name="chapter_page">Chapter / Page</string>
-    <string name="contents_tab_label">Contents</string>
-    <string name="bookmarks_tab_label">Bookmarks</string>
+    <string name="epubactivity_set_bookmark">Добавить закладку</string>
+    <string name="chapter_page">Страница</string>
+    <string name="bookshelf_screen_title">Ваши книги</string>
+    <string name="contents_tab_label">Содержание</string>
+    <string name="bookmarks_tab_label">Закладки</string>
+    <string name="bookshelf_is_empty">Ваша книжная полка пока пуста</string>
     <string name="unknown_author">Неизвестный автор</string>
+    <string name="book_already_exist">Файл уже есть в библиотеке</string>
+    <string name="file_not_created_error">Не удалось создать файл</string>
+    <string name="publication_opening_error">Не удалось открыть публикацию</string>
 </resources>

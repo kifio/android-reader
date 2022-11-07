@@ -44,8 +44,8 @@ fun MyApplicationTheme(
         )
     } else {
         lightColors(
-            background = Color.Black,
-            onBackground = Color.White,
+            background = Color.White,
+            onBackground = Color.Black,
         )
     }
     val typography = Typography(
@@ -101,12 +101,4 @@ class MainActivity : ComponentActivity() {
     private fun openFilePicker() = getContent.launch("application/*")
 
     private fun openBook(bookId: Long) = readerLauncher.launch(ReaderActivityContract.Arguments(bookId))
-}
-
-@Preview
-@Composable
-fun DefaultPreview() {
-    MyApplicationTheme {
-//        BookshelfView()
-    }
 }

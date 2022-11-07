@@ -6,18 +6,21 @@
 
 package me.kifio.kreader.android.outline
 
+import android.os.Build
 import android.os.Bundle
+import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
+import androidx.annotation.RequiresApi
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.ViewModelProvider
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.google.android.material.tabs.TabLayoutMediator
+import kotlinx.parcelize.Parcelize
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentOutlineBinding
-import me.kifio.kreader.android.reader.ReaderActivity
 import me.kifio.kreader.android.reader.ReaderViewModel
 import me.kifio.kreader.android.utils.viewLifecycle
 import org.readium.r2.shared.publication.Publication
@@ -26,16 +29,29 @@ import org.readium.r2.shared.publication.opds.images
 class OutlineFragment : Fragment() {
 
     private lateinit var publication: Publication
+    private lateinit var outline: Outline
+    private lateinit var model: ReaderViewModel
     private var binding: FragmentOutlineBinding by viewLifecycle()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        ViewModelProvider(requireActivity()).get(ReaderViewModel::class.java).let {
-            publication = it.publication
-        }
+        model = ViewModelProvider(requireActivity())[ReaderViewModel::class.java]
+        publication = model.publication
 
-        (activity as ReaderActivity?)?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        outline = when (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+             true -> arguments?.getSerializable(OUTLINE_CONTENT_ARG, Outline::class.java)
+             false -> arguments?.getSerializable(OUTLINE_CONTENT_ARG) as Outline
+        } ?: throw java.lang.IllegalStateException()
+
+        activity?.onBackPressedDispatcher?.addCallback(
+            this,
+            object: OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    model.fragmentBackPressed()
+                }
+            }
+        )
 
         childFragmentManager.setFragmentResultListener(
             OutlineContract.REQUEST_KEY,
@@ -54,23 +70,16 @@ class OutlineFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        val outlines: List<Outline> = listOf(Outline.Contents, Outline.Bookmarks)
-
-        binding.outlinePager.adapter = OutlineFragmentStateAdapter(this, publication, outlines)
-        TabLayoutMediator(binding.outlineTabLayout, binding.outlinePager) { tab, idx -> tab.setText(outlines[idx].label) }.attach()
-    }
-}
-
-private class OutlineFragmentStateAdapter(fragment: Fragment, val publication: Publication, val outlines: List<Outline>)
-    : FragmentStateAdapter(fragment) {
-
-    override fun getItemCount(): Int {
-        return outlines.size
+        binding.navigateUp.setOnClickListener { model.fragmentBackPressed() }
+        binding.title.setText(outline.title)
+        val fragment = createFragment()
+        childFragmentManager.beginTransaction()
+            .add(R.id.outline_content_conatiner, fragment, fragment::class.simpleName)
+            .commit()
     }
 
-    override fun createFragment(position: Int): Fragment {
-        return when (this.outlines[position]) {
+    private fun createFragment(): Fragment {
+        return when (outline) {
             Outline.Bookmarks -> BookmarksFragment()
             Outline.Contents -> createContentsFragment()
         }
@@ -85,9 +94,17 @@ private class OutlineFragmentStateAdapter(fragment: Fragment, val publication: P
                 else -> mutableListOf()
             }
         )
-}
 
-private enum class Outline(val label: Int) {
-    Contents(R.string.contents_tab_label),
-    Bookmarks(R.string.bookmarks_tab_label),
+    companion object {
+        const val OUTLINE_CONTENT_ARG = "OUTLINE_CONTENT_ARG"
+
+        fun newInstance(outline: Outline) = OutlineFragment().apply {
+            arguments = bundleOf(OUTLINE_CONTENT_ARG to outline)
+        }
+    }
+
+    sealed class Outline(val title: Int) : java.io.Serializable {
+        object Contents: Outline(title = R.string.contents_tab_label)
+        object Bookmarks: Outline(title = R.string.bookmarks_tab_label)
+    }
 }

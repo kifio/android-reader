@@ -17,7 +17,6 @@
 
     </style>
 
-
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
@@ -33,7 +32,6 @@
     <style name="ReaderBottomAppBarStyle" parent="Widget.MaterialComponents.BottomAppBar">
         <item name="android:background">@color/background</item>
     </style>
-
 
 
 </resources>
