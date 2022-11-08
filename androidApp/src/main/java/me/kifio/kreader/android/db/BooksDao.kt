@@ -7,6 +7,7 @@
 package me.kifio.kreader.android.db
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -64,8 +65,8 @@ interface BooksDao {
     /**
      * Deletes a bookmark
      */
-    @Query("DELETE FROM " + Bookmark.TABLE_NAME + " WHERE " + Bookmark.ID + " = :id")
-    suspend fun deleteBookmark(id: Long)
+    @Delete(entity = Bookmark::class)
+    suspend fun deleteBookmark(bookmark: Bookmark)
 
     /**
      * Saves book progression

@@ -60,5 +60,5 @@ class BookRepository(private val booksDao: BooksDao) {
     suspend fun bookmarksForBook(bookId: Long): MutableList<Bookmark> =
         booksDao.getBookmarksForBook(bookId)
 
-    suspend fun deleteBookmark(bookmarkId: Long) = booksDao.deleteBookmark(bookmarkId)
+    suspend fun deleteBookmark(bookmark: Bookmark) = booksDao.deleteBookmark(bookmark)
 }

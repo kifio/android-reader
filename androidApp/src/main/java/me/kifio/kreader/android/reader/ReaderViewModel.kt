@@ -51,18 +51,18 @@ class ReaderViewModel(
 
     private var _positions: MutableList<Locator> = mutableListOf()
     private var _bookmarks: MutableList<Bookmark> = mutableListOf()
-    private var _locations: MutableList<Locator.Locations> = mutableListOf()
+    private var _bookmarksLocations: MutableList<Locator.Locations> = mutableListOf()
 
     val bookmarks: List<Bookmark>
         get() = _bookmarks
 
     val locations: List<Locator.Locations>
-        get() = _locations
+        get() = _bookmarksLocations
 
     init {
         viewModelScope.launch {
             _bookmarks.addAll(bookRepository.bookmarksForBook(bookId = bookId))
-            _locations.addAll(bookmarks.map { it.locations() })
+            _bookmarksLocations.addAll(bookmarks.map { it.locations() })
             _positions.addAll(publication.positions())
             activityChannel.send(ActivityEvent.ViewModelReady)
         }
@@ -89,7 +89,7 @@ class ReaderViewModel(
     fun insertBookmark(locator: Locator) = viewModelScope.launch {
         with(bookRepository.insertBookmark(bookId, publication, locator)) {
             _bookmarks.add(this)
-            _locations.add(this.locations())
+            _bookmarksLocations.add(this.locations())
             fragmentChannel.send(FragmentEvent.BookmarkSuccessfullyAdded)
         }
     }
@@ -99,16 +99,14 @@ class ReaderViewModel(
             val l = Locator.Locations.fromJSON(JSONObject(it.location))
             l == locator.locations
         } ?: return@launch
-
-        val id = bookmark.id ?: return@launch
-
-        _locations.remove(bookmark.locations())
-        deleteBookmark(id)
+        _bookmarksLocations.remove(bookmark.locations())
+        deleteBookmark(bookmark)
     }
 
-    fun deleteBookmark(id: Long) = viewModelScope.launch {
-        _bookmarks.removeIf { it.id == id }
-        bookRepository.deleteBookmark(id)
+    fun deleteBookmark(bookmark: Bookmark) = viewModelScope.launch {
+        _bookmarks.remove(bookmark)
+        _bookmarksLocations.remove(bookmark.locations())
+        bookRepository.deleteBookmark(bookmark)
         fragmentChannel.send(FragmentEvent.BookmarkSuccessfullyRemoved)
     }
 

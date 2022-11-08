@@ -14,7 +14,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.os.bundleOf
 import androidx.core.view.MenuProvider
 import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
@@ -160,6 +159,13 @@ open class ReaderActivity : AppCompatActivity() {
         }
     }
 
+    override fun onBackPressed() {
+        when (!fragmentBackPressed()) {
+            true -> super.onBackPressed()
+            false -> {}
+        }
+    }
+
     private fun onViewModelReady() {
         binding.bottomBarProgress.max = model.pagesCount
         binding.bottomBarProgress.setOnSeekBarChangeListener(object :
@@ -225,11 +231,10 @@ open class ReaderActivity : AppCompatActivity() {
     private fun showOutlineFragment(outline: OutlineFragment.Outline) {
         binding.outlineContainer.isVisible = true
         supportFragmentManager.commit {
-            add(
+            replace(
                 R.id.outline_container,
                 OutlineFragment.newInstance(outline), OutlineFragment::class.simpleName
             )
-            addToBackStack(OutlineFragment::class.simpleName)
         }
     }
 
@@ -238,8 +243,13 @@ open class ReaderActivity : AppCompatActivity() {
         readerFragment.go(locator, true)
     }
 
-    private fun fragmentBackPressed() {
+    private fun fragmentBackPressed(): Boolean {
         binding.outlineContainer.isVisible = false
+        return supportFragmentManager.findFragmentByTag(OutlineFragment::class.simpleName)?.let {
+            (it as OutlineFragment).destroy()
+            supportFragmentManager.beginTransaction().remove(it).commit()
+            true
+        } ?: false
     }
 
     private fun handleClick(view: View, action: (View) -> Unit) {

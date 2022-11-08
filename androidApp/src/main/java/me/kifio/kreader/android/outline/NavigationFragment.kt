@@ -11,10 +11,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.*
+import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentListviewBinding
 import me.kifio.kreader.android.databinding.ItemRecycleNavigationBinding
 import me.kifio.kreader.android.reader.ReaderViewModel
@@ -78,7 +80,21 @@ class NavigationFragment : Fragment() {
                 )
             )
         }
-        navAdapter.submitList(flatLinks)
+
+        binding.placeholder.setText(R.string.contents_placeholder)
+
+        when (flatLinks.isEmpty()) {
+            true -> {
+                binding.placeholder.setText(R.string.bookmarks_placeholder)
+                binding.listView.isVisible = false
+            }
+            false -> {
+                navAdapter.submitList(flatLinks)
+                binding.placeholder.isVisible = false
+                binding.listView.isVisible = true
+            }
+        }
+
     }
 
     private fun onLinkSelected(link: Link) {

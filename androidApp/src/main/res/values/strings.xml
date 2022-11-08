@@ -19,4 +19,6 @@
     <string name="book_already_exist">Файл уже есть в библиотеке</string>
     <string name="file_not_created_error">Не удалось создать файл</string>
     <string name="publication_opening_error">Не удалось открыть публикацию</string>
+    <string name="bookmarks_placeholder">Вы пока не добавили никаких закладок</string>
+    <string name="contents_placeholder">В этой книге нет оглавления</string>
 </resources>

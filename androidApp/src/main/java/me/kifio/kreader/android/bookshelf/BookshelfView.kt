@@ -3,21 +3,20 @@ package me.kifio.kreader.android.bookshelf
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -114,8 +113,9 @@ fun Content(ctx: Context, viewModel: BookshelfViewModel, openBook: (Long) -> Uni
         ) {
             Text(
                 color = Color.Black,
-                style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Medium),
-                text = stringResource(id = R.string.bookshelf_is_empty))
+                fontSize = 14.sp,
+                text = stringResource(id = R.string.bookshelf_is_empty)
+            )
         }
         else -> BookshelfContent(
             ctx = ctx,
@@ -126,7 +126,7 @@ fun Content(ctx: Context, viewModel: BookshelfViewModel, openBook: (Long) -> Uni
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun BookshelfContent(
     ctx: Context,
@@ -134,16 +134,19 @@ fun BookshelfContent(
     viewModel: BookshelfViewModel,
     openBook: (Long) -> Unit
 ) {
-    LazyColumn(
-
-    ) {
-        items(books.size) { index ->
+    LazyColumn {
+        itemsIndexed(
+            items = books,
+            key = { _, book ->
+                book.id
+            }
+        ) { _, book ->
             val dismissState = rememberDismissState(
                 initialValue = DismissValue.Default,
                 confirmStateChange = {
-//                    if (it == DismissValue.DismissedToStart) {
-//                        viewModel.deleteBook(books[index])
-//                    }
+                    if (it == DismissValue.DismissedToStart) {
+                        viewModel.deleteBook(book)
+                    }
                     true
                 }
             )
@@ -152,6 +155,7 @@ fun BookshelfContent(
                 state = dismissState,
                 directions = setOf(DismissDirection.EndToStart),
                 dismissThresholds = { FractionalThreshold(0.2f) },
+                modifier = Modifier.animateItemPlacement(),
                 background = {
 
                     val color by animateColorAsState(
@@ -178,11 +182,12 @@ fun BookshelfContent(
                 dismissContent = {
                     BookItem(
                         ctx = ctx,
-                        book = books[index],
+                        book = book,
                         viewModel = viewModel,
                         openBook = openBook
                     )
-                })
+                }
+            )
         }
     }
 }

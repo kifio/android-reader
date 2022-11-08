@@ -10,13 +10,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.*
+import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentListviewBinding
 import me.kifio.kreader.android.databinding.ItemRecycleBookmarkBinding
 import me.kifio.kreader.android.model.Bookmark
@@ -56,19 +55,47 @@ class BookmarksFragment : Fragment() {
 
         bookmarkAdapter = BookmarkAdapter(
             publication,
-            onBookmarkDeleteRequested = { bookmark -> viewModel.deleteBookmark(bookmark.id!!) },
             onBookmarkSelectedRequested = { bookmark -> onBookmarkSelected(bookmark) })
+
         binding.listView.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(requireContext())
             adapter = bookmarkAdapter
         }
 
-        bookmarkAdapter.submitList(
-            viewModel.bookmarks.sortedWith(
-                compareBy({ it.resourceIndex }, { it.locator.locations.progression })
-            )
-        )
+        when (viewModel.bookmarks.isEmpty()) {
+            true -> {
+                binding.placeholder.setText(R.string.bookmarks_placeholder)
+                binding.listView.isVisible = false
+            }
+            false -> {
+                bookmarkAdapter.submitList(
+                    viewModel.bookmarks.sortedWith(
+                        compareBy({ it.resourceIndex }, { it.locator.locations.progression })
+                    )
+                )
+                binding.placeholder.isVisible = false
+                binding.listView.isVisible = true
+            }
+        }
+
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean = false
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                // this method is called when we swipe our item to right direction.
+                // on below line we are getting the item at a particular position.
+
+                val position = viewHolder.bindingAdapterPosition
+                viewModel.deleteBookmark(viewModel.bookmarks[position])
+
+                bookmarkAdapter.notifyItemRemoved(position)
+            }
+        }).attachToRecyclerView(binding.listView)
     }
 
     private fun onBookmarkSelected(bookmark: Bookmark) {
@@ -81,7 +108,6 @@ class BookmarksFragment : Fragment() {
 
 class BookmarkAdapter(
     private val publication: Publication,
-    private val onBookmarkDeleteRequested: (Bookmark) -> Unit,
     private val onBookmarkSelectedRequested: (Bookmark) -> Unit
 ) :
     ListAdapter<Bookmark, BookmarkAdapter.ViewHolder>(BookmarksDiff()) {

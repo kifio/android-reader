@@ -74,7 +74,7 @@ class OutlineFragment : Fragment() {
         binding.title.setText(outline.title)
         val fragment = createFragment()
         childFragmentManager.beginTransaction()
-            .add(R.id.outline_content_conatiner, fragment, fragment::class.simpleName)
+            .replace(R.id.outline_content_conatiner, fragment, fragment::class.simpleName)
             .commit()
     }
 
@@ -94,6 +94,12 @@ class OutlineFragment : Fragment() {
                 else -> mutableListOf()
             }
         )
+
+    fun destroy() {
+        childFragmentManager.findFragmentById(R.id.outline_content_conatiner)?.let {
+            childFragmentManager.beginTransaction().remove(it).commit()
+        }
+    }
 
     companion object {
         const val OUTLINE_CONTENT_ARG = "OUTLINE_CONTENT_ARG"
