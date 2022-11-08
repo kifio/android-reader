@@ -10,7 +10,8 @@
 
 <resources>
     <string name="epubactivity_set_bookmark">Добавить закладку</string>
-    <string name="chapter_page">Страница</string>
+    <string name="chapter_page">Страница %d</string>
+    <string name="through_resource">%d%% до к</string>
     <string name="bookshelf_screen_title">Ваши книги</string>
     <string name="contents_tab_label">Содержание</string>
     <string name="bookmarks_tab_label">Закладки</string>

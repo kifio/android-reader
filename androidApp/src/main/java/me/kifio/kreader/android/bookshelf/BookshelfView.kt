@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.*
 import coil.compose.AsyncImage
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.model.Book
+import okhttp3.internal.wait
 import java.io.File
 
 @Composable
@@ -168,13 +170,16 @@ fun BookshelfContent(
                     Box(
                         Modifier
                             .fillMaxSize()
-                            .background(color),
+                            .background(color)
+                            .padding(end = 24.dp),
                         contentAlignment = Alignment.CenterEnd,
                     ) {
                         if (dismissState.targetValue != DismissValue.Default) {
                             Icon(
                                 Icons.Default.Delete,
+                                tint = Color.White,
                                 contentDescription = "Delete Icon",
+                                modifier = Modifier.scale(1.5F)
                             )
                         }
                     }
@@ -205,15 +210,11 @@ fun ProgressBar() {
 @OptIn(ExperimentalUnitApi::class)
 @Composable
 fun BookItem(ctx: Context, book: Book, viewModel: BookshelfViewModel, openBook: (Long) -> Unit) {
-    val configuration = LocalConfiguration.current
-
-    val screenHeight = configuration.screenHeightDp.dp
-    val screenWidth = configuration.screenWidthDp.dp
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = { viewModel.openBook(ctx, book) { openBook(it) } })
+            .background(Color.White)
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Top,
@@ -222,7 +223,7 @@ fun BookItem(ctx: Context, book: Book, viewModel: BookshelfViewModel, openBook: 
             model = File("${ctx.filesDir}covers/${book.id}.png"),
             contentDescription = "",
             modifier = Modifier
-                .width(screenWidth.div(2.5f))
+                .width((LocalConfiguration.current.screenWidthDp.dp).div(2.5f))
                 .shadow(elevation = 8.dp, shape = MaterialTheme.shapes.medium)
         )
         Column(

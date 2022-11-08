@@ -22,7 +22,7 @@ import org.readium.r2.navigator.pager.R2ViewPager
 import org.readium.r2.shared.*
 import java.io.File
 
-class UserSettings(var preferences: SharedPreferences, val context: Context, private val UIPreset: MutableMap<ReadiumCSSName, Boolean>) {
+class UserSettings(preferences: SharedPreferences, val context: Context) {
 
     lateinit var resourcePager: R2ViewPager
 

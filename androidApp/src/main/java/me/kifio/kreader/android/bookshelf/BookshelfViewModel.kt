@@ -16,10 +16,7 @@ import me.kifio.kreader.android.Application
 import me.kifio.kreader.android.model.Book
 import me.kifio.kreader.android.reader.ReaderRepository
 import me.kifio.kreader.android.utils.extensions.copyToLocalFile
-import me.kifio.kreader.android.utils.extensions.screenWidth
-import org.readium.r2.shared.UserException
 import org.readium.r2.shared.extensions.mediaType
-import org.readium.r2.shared.extensions.tryOrNull
 import org.readium.r2.shared.publication.Publication
 import org.readium.r2.shared.publication.asset.FileAsset
 import org.readium.r2.shared.publication.services.coverFitting
@@ -33,6 +30,10 @@ sealed class BookShelfError {
     object FileNotCreatedError : BookShelfError()
     object PublicationOpeningError : BookShelfError()
 }
+
+val Context.screenWidth: Int
+    get() = resources.displayMetrics.widthPixels
+
 
 class BookshelfViewModel : ViewModel() {
 

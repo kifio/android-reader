@@ -95,7 +95,7 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
 
         val activity = requireActivity()
         userSettings =
-            UserSettings(navigatorFragment.preferences, activity, publication.userSettingsUIPreset)
+            UserSettings(navigatorFragment.preferences, activity)
 
         // This is a hack to draw the right background color on top and bottom blank spaces
         navigatorFragment.lifecycleScope.launchWhenStarted {

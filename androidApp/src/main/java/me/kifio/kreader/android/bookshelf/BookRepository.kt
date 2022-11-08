@@ -9,11 +9,14 @@ package me.kifio.kreader.android.bookshelf
 import me.kifio.kreader.android.db.BooksDao
 import me.kifio.kreader.android.model.Book
 import me.kifio.kreader.android.model.Bookmark
-import me.kifio.kreader.android.utils.extensions.authorName
 import org.readium.r2.shared.publication.Locator
+import org.readium.r2.shared.publication.Metadata
 import org.readium.r2.shared.publication.Publication
 import org.readium.r2.shared.publication.indexOfFirstWithHref
 import org.readium.r2.shared.util.mediatype.MediaType
+
+val Metadata.authorName: String get() =
+    authors.firstOrNull()?.name ?: ""
 
 class BookRepository(private val booksDao: BooksDao) {
 

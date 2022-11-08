@@ -6,15 +6,23 @@
 
 package me.kifio.kreader.android.outline
 
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.*
+import com.google.android.material.divider.MaterialDividerItemDecoration
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentListviewBinding
 import me.kifio.kreader.android.databinding.ItemRecycleBookmarkBinding
@@ -23,7 +31,15 @@ import me.kifio.kreader.android.reader.ReaderViewModel
 import me.kifio.kreader.android.utils.extensions.outlineTitle
 import me.kifio.kreader.android.utils.viewLifecycle
 import org.readium.r2.shared.publication.Publication
-import kotlin.math.roundToInt
+import kotlin.math.abs
+
+
+private fun Int.toPx(context: Context): Int =
+    (this * context.resources.displayMetrics.density).toInt()
+
+private fun Float.toPx(context: Context): Int =
+    (this * context.resources.displayMetrics.density).toInt()
+
 
 class BookmarksFragment : Fragment() {
 
@@ -79,7 +95,30 @@ class BookmarksFragment : Fragment() {
             }
         }
 
+
+        val divider = MaterialDividerItemDecoration(
+            requireContext(),
+            DividerItemDecoration.VERTICAL
+        )
+
+        divider.setDividerColorResource(requireContext(), R.color.secondary)
+        divider.dividerInsetEnd = 8.toPx(requireContext())
+        divider.dividerInsetStart = 8.toPx(requireContext())
+        divider.dividerThickness = 0.5F.toPx(requireContext())
+        divider.isLastItemDecorated = false
+
+//        binding.listView.addItemDecoration(divider)
+
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+            private val background: Drawable = ColorDrawable(Color.RED)
+
+            private val deleteIcon: Drawable = ContextCompat.getDrawable(
+                requireContext(),
+                R.drawable.ic_baseline_delete_24
+            ) ?: throw java.lang.IllegalStateException()
+
+            private val deleteIconMargin = 8.toPx(requireContext())
+
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
@@ -87,14 +126,59 @@ class BookmarksFragment : Fragment() {
             ): Boolean = false
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                // this method is called when we swipe our item to right direction.
-                // on below line we are getting the item at a particular position.
-
                 val position = viewHolder.bindingAdapterPosition
                 viewModel.deleteBookmark(viewModel.bookmarks[position])
-
-                bookmarkAdapter.notifyItemRemoved(position)
+                bookmarkAdapter.submitList(
+                    viewModel.bookmarks.sortedWith(
+                        compareBy({ it.resourceIndex }, { it.locator.locations.progression })
+                    )
+                )
             }
+
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                if (viewHolder.bindingAdapterPosition == -1) return
+
+                val itemView = viewHolder.itemView
+
+                if (abs(dX.toDouble() / itemView.width) > 0.1) {
+                    background.setBounds(
+                        itemView.right + dX.toInt(),
+                        itemView.top,
+                        itemView.right,
+                        itemView.bottom
+                    )
+
+                    background.draw(c)
+
+                    val itemHeight = itemView.bottom - itemView.top
+                    val xMarkLeft: Int = itemView.right - deleteIconMargin - deleteIcon.intrinsicWidth
+                    val xMarkRight: Int = itemView.right - deleteIconMargin
+                    val xMarkTop = itemView.top + (itemHeight - deleteIcon.intrinsicWidth) / 2
+                    val xMarkBottom = xMarkTop + deleteIcon.intrinsicWidth
+                    deleteIcon.setBounds(xMarkLeft, xMarkTop, xMarkRight, xMarkBottom)
+
+                    deleteIcon.draw(c)
+                }
+
+                super.onChildDraw(
+                    c,
+                    recyclerView,
+                    viewHolder,
+                    dX,
+                    dY,
+                    actionState,
+                    isCurrentlyActive
+                )
+            }
+
         }).attachToRecyclerView(binding.listView)
     }
 
@@ -134,32 +218,14 @@ class BookmarkAdapter(
         holder.bind(item)
     }
 
-    inner class ViewHolder(val binding: ItemRecycleBookmarkBinding) :
+    inner class ViewHolder(private val binding: ItemRecycleBookmarkBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(bookmark: Bookmark) {
-            val title = getBookSpineItem(bookmark.resourceHref)
-                ?: "*Title Missing*"
+            val title: String = getBookSpineItem(bookmark.location)
+                ?: itemView.resources.getString(R.string.chapter_page, bookmark.locator.locations.position)
 
             binding.bookmarkChapter.text = title
-            bookmark.locator.locations.progression?.let { progression ->
-                val formattedProgression = "${(progression * 100).roundToInt()}% through resource"
-                binding.bookmarkProgression.text = formattedProgression
-            }
-
-//            binding.overflow.setOnClickListener {
-//
-//                val popupMenu = PopupMenu(binding.overflow.context, binding.overflow)
-//                popupMenu.menuInflater.inflate(R.menu.menu_bookmark, popupMenu.menu)
-//                popupMenu.show()
-//
-//                popupMenu.setOnMenuItemClickListener { item ->
-//                    if (item.itemId == R.id.delete) {
-//                        onBookmarkDeleteRequested(bookmark)
-//                    }
-//                    false
-//                }
-//            }
 
             binding.root.setOnClickListener {
                 onBookmarkSelectedRequested(bookmark)

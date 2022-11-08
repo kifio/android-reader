@@ -1,4 +1,4 @@
-package me.kifio.kreader.android.presentation
+package me.kifio.kreader.android
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -27,15 +27,6 @@ fun MyApplicationTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-
-//    FontFamily(
-//        fonts = arrayOf(
-//            Font(R.font.montserrat_regular, weight = FontWeight.Normal),
-//            Font(R.font.montserrat_medium, weight = FontWeight.Medium),
-//            Font(R.font.montserrat_bold, weight = FontWeight.Bold),
-//            Font(R.font.montserrat_semibold, weight = FontWeight.SemiBold),
-//        )
-//    )
 
     val colors = if (darkTheme) {
         darkColors(
@@ -70,7 +61,7 @@ class MainActivity : ComponentActivity() {
     private val bookShelfVM: BookshelfViewModel by viewModels()
 
     private val getContent =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             uri?.let { bookShelfVM.saveBookToLocalStorage(this, it) }
         }
 
@@ -98,7 +89,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun openFilePicker() = getContent.launch("application/*")
+    private fun openFilePicker() = getContent.launch(arrayOf("application/epub+zip", "application/pdf"))
 
     private fun openBook(bookId: Long) = readerLauncher.launch(ReaderActivityContract.Arguments(bookId))
 }
