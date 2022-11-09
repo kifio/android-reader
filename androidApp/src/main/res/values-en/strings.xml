@@ -1,4 +1,5 @@
 <resources>
+    <string name="app_name">Simple eReader</string>
     <string name="epubactivity_set_bookmark">Add bookmark</string>
     <string name="chapter_page">Page %d</string>
     <string name="bookshelf_screen_title">Your books</string>

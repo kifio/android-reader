@@ -49,12 +49,14 @@ dependencies {
     val fragment_ktx_version = "1.5.4"
     val material_version = "1.7.0"
     val coroutines_core_version = "1.6.0"
+    val navigation_compose_version = "2.5.3"
 
     implementation("androidx.compose.ui:ui:$compose_version")
     implementation("androidx.compose.ui:ui-tooling:$compose_version")
     implementation("androidx.compose.ui:ui-tooling-preview:$compose_version")
     implementation("androidx.compose.foundation:foundation:$compose_version")
     implementation("androidx.compose.material:material:$compose_version")
+    implementation("androidx.navigation:navigation-compose:$navigation_compose_version")
     implementation("androidx.activity:activity-compose:$activity_compose_version")
     implementation("androidx.paging:paging-runtime:$paging_version")
     implementation("androidx.fragment:fragment-ktx:$fragment_ktx_version")
