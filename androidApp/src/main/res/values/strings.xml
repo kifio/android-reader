@@ -1,17 +1,6 @@
-<!--
-  ~ Module: r2-testapp-kotlin
-  ~ Developers: Aferdita Muriqi, Clément Baumann
-  ~
-  ~ Copyright (c) 2018. European Digital Reading Lab. All rights reserved.
-  ~ Licensed to the Readium Foundation under one or more contributor license agreements.
-  ~ Use of this source code is governed by a BSD-style license which is detailed in the
-  ~ LICENSE file present in the project repository where this source code is maintained.
-  -->
-
 <resources>
     <string name="epubactivity_set_bookmark">Добавить закладку</string>
     <string name="chapter_page">Страница %d</string>
-    <string name="through_resource">%d%% до к</string>
     <string name="bookshelf_screen_title">Ваши книги</string>
     <string name="contents_tab_label">Содержание</string>
     <string name="bookmarks_tab_label">Закладки</string>

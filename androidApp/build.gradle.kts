@@ -44,33 +44,30 @@ dependencies {
     val lifecycle_version = "2.5.1"
     val paging_version = "3.1.1"
     val coil_version = "2.2.2"
-    val nav_version = "2.5.3"
+    val insetter_version = "0.6.1"
+    val activity_compose_version = "1.6.0"
+    val fragment_ktx_version = "1.5.4"
+    val material_version = "1.7.0"
+    val coroutines_core_version = "1.6.0"
 
-//    implementation(project(":shared"))
     implementation("androidx.compose.ui:ui:$compose_version")
     implementation("androidx.compose.ui:ui-tooling:$compose_version")
     implementation("androidx.compose.ui:ui-tooling-preview:$compose_version")
     implementation("androidx.compose.foundation:foundation:$compose_version")
     implementation("androidx.compose.material:material:$compose_version")
-    implementation("androidx.activity:activity-compose:1.6.0")
-    implementation("androidx.appcompat:appcompat:1.5.1")
+    implementation("androidx.activity:activity-compose:$activity_compose_version")
     implementation("androidx.paging:paging-runtime:$paging_version")
-    implementation("androidx.fragment:fragment-ktx:1.5.4")
+    implementation("androidx.fragment:fragment-ktx:$fragment_ktx_version")
     implementation("io.coil-kt:coil-compose:$coil_version")
     implementation("io.coil-kt:coil:$coil_version")
-    implementation("androidx.navigation:navigation-fragment-ktx:$nav_version")
-    implementation("androidx.navigation:navigation-runtime-ktx:$nav_version")
-    implementation("com.google.android.material:material:1.7.0")
-    implementation("dev.chrisbanes.insetter:insetter:0.6.1")
-
+    implementation("com.google.android.material:material:$material_version")
+    implementation("dev.chrisbanes.insetter:insetter:$insetter_version")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
     implementation("com.github.readium.kotlin-toolkit:readium-shared:$readium_version")
     implementation("com.github.readium.kotlin-toolkit:readium-streamer:$readium_version")
     implementation("com.github.readium.kotlin-toolkit:readium-navigator:$readium_version")
     implementation("com.github.readium.kotlin-toolkit:readium-lcp:$readium_version")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
-
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_core_version")
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     kapt("androidx.room:room-compiler:$room_version")

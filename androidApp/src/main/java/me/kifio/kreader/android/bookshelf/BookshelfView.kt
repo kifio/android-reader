@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,7 +29,6 @@ import androidx.compose.ui.unit.*
 import coil.compose.AsyncImage
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.model.Book
-import okhttp3.internal.wait
 import java.io.File
 
 @Composable
@@ -171,7 +171,7 @@ fun BookshelfContent(
                         Modifier
                             .fillMaxSize()
                             .background(color)
-                            .padding(end = 24.dp),
+                            .padding(end = with(LocalDensity.current) { (ctx.screenWidth * 0.1F).toDp() }),
                         contentAlignment = Alignment.CenterEnd,
                     ) {
                         if (dismissState.targetValue != DismissValue.Default) {

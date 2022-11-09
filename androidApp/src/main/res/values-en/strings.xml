@@ -1,0 +1,14 @@
+<resources>
+    <string name="epubactivity_set_bookmark">Add bookmark</string>
+    <string name="chapter_page">Page %d</string>
+    <string name="bookshelf_screen_title">Your books</string>
+    <string name="contents_tab_label">Contents</string>
+    <string name="bookmarks_tab_label">Bookmarks</string>
+    <string name="bookshelf_is_empty">Your bookshelf is empty</string>
+    <string name="unknown_author">Unknown author</string>
+    <string name="book_already_exist">Book already added</string>
+    <string name="file_not_created_error">Can\'t create file for book. Please, clean storage and try again.</string>
+    <string name="publication_opening_error">Cannot open book. Please, delete it and add again.</string>
+    <string name="bookmarks_placeholder">You din\'t add any bookmarks yet</string>
+    <string name="contents_placeholder">This book has no table of contents</string>
+</resources>

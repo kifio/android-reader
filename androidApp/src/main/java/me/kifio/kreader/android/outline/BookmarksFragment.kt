@@ -6,6 +6,7 @@
 
 package me.kifio.kreader.android.outline
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -15,7 +16,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -95,22 +95,20 @@ class BookmarksFragment : Fragment() {
             }
         }
 
-
-        val divider = MaterialDividerItemDecoration(
-            requireContext(),
-            DividerItemDecoration.VERTICAL
-        )
-
-        divider.setDividerColorResource(requireContext(), R.color.secondary)
-        divider.dividerInsetEnd = 8.toPx(requireContext())
-        divider.dividerInsetStart = 8.toPx(requireContext())
-        divider.dividerThickness = 0.5F.toPx(requireContext())
-        divider.isLastItemDecorated = false
-
-//        binding.listView.addItemDecoration(divider)
-
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
-            private val background: Drawable = ColorDrawable(Color.RED)
+            private val background: Drawable = ColorDrawable(Color.RED).apply { alpha = 0 }
+
+            private val backgroundAnimator = ValueAnimator.ofInt(0, 255).apply {
+                duration = ANIMATION_DURATION
+                addUpdateListener {
+                    with(it.animatedValue as Int) {
+                        background.alpha = this
+                    }
+                }
+            }
+
+            private var shouldShowBackground = true
+            private var shouldHideBackground = false
 
             private val deleteIcon: Drawable = ContextCompat.getDrawable(
                 requireContext(),
@@ -147,26 +145,44 @@ class BookmarksFragment : Fragment() {
                 if (viewHolder.bindingAdapterPosition == -1) return
 
                 val itemView = viewHolder.itemView
+                val offset = abs(dX.toDouble() / itemView.width)
 
-                if (abs(dX.toDouble() / itemView.width) > 0.1) {
-                    background.setBounds(
-                        itemView.right + dX.toInt(),
-                        itemView.top,
-                        itemView.right,
-                        itemView.bottom
-                    )
-
-                    background.draw(c)
-
-                    val itemHeight = itemView.bottom - itemView.top
-                    val xMarkLeft: Int = itemView.right - deleteIconMargin - deleteIcon.intrinsicWidth
-                    val xMarkRight: Int = itemView.right - deleteIconMargin
-                    val xMarkTop = itemView.top + (itemHeight - deleteIcon.intrinsicWidth) / 2
-                    val xMarkBottom = xMarkTop + deleteIcon.intrinsicWidth
-                    deleteIcon.setBounds(xMarkLeft, xMarkTop, xMarkRight, xMarkBottom)
-
-                    deleteIcon.draw(c)
+                if (offset > 0.1 && shouldShowBackground) {
+                    backgroundAnimator.cancel()
+                    backgroundAnimator.start()
+                    shouldHideBackground = true
+                    shouldShowBackground = false
+                } else if (offset < 0.1 && shouldHideBackground) {
+                    backgroundAnimator.cancel()
+                    backgroundAnimator.reverse()
+                    shouldShowBackground = true
+                    shouldHideBackground = false
                 }
+
+                background.setBounds(
+                    itemView.right + dX.toInt(),
+                    itemView.top,
+                    itemView.right,
+                    itemView.bottom
+                )
+
+                background.draw(c)
+
+                val itemHeight = itemView.bottom - itemView.top
+                val deleteIconLeft: Int =
+                    itemView.right - deleteIconMargin - deleteIcon.intrinsicWidth
+                val deleteIconRight: Int = itemView.right - deleteIconMargin
+                val deleteIconTop = itemView.top + (itemHeight - deleteIcon.intrinsicWidth) / 2
+                val deleteIconBottom = deleteIconTop + deleteIcon.intrinsicWidth
+
+                deleteIcon.setBounds(
+                    deleteIconLeft,
+                    deleteIconTop,
+                    deleteIconRight,
+                    deleteIconBottom
+                )
+
+                deleteIcon.draw(c)
 
                 super.onChildDraw(
                     c,
@@ -187,6 +203,10 @@ class BookmarksFragment : Fragment() {
             OutlineContract.REQUEST_KEY,
             OutlineContract.createResult(bookmark.locator)
         )
+    }
+
+    companion object {
+        private const val ANIMATION_DURATION = 200L
     }
 }
 
@@ -223,7 +243,10 @@ class BookmarkAdapter(
 
         fun bind(bookmark: Bookmark) {
             val title: String = getBookSpineItem(bookmark.location)
-                ?: itemView.resources.getString(R.string.chapter_page, bookmark.locator.locations.position)
+                ?: itemView.resources.getString(
+                    R.string.chapter_page,
+                    bookmark.locator.locations.position
+                )
 
             binding.bookmarkChapter.text = title
 
