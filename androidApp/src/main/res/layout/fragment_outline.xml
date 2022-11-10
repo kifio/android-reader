@@ -26,24 +26,24 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <com.google.android.material.textview.MaterialTextView
+        style="@style/Reader.Headline6"
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:textColor="@color/primary"
+        android:gravity="center"
+        android:elevation="8dp"
+        android:layout_gravity="center_horizontal|top" />
+
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/navigate_up"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:elevation="16dp"
+        android:elevation="8dp"
         android:padding="16dp"
         android:src="@drawable/ic_baseline_arrow_back_24" />
-
-    <com.google.android.material.textview.MaterialTextView
-        style="@style/Reader.Headline6"
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="?android:attr/actionBarSize"
-        android:textColor="@color/primary"
-        android:gravity="center"
-        android:elevation="16dp"
-        android:layout_gravity="center_horizontal|top" />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/outline_content_conatiner"
