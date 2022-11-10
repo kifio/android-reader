@@ -13,7 +13,7 @@ android {
         minSdk = 26
         targetSdk = 33
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.1"
     }
     buildFeatures {
         compose = true
@@ -50,6 +50,7 @@ dependencies {
     val material_version = "1.7.0"
     val coroutines_core_version = "1.6.0"
     val navigation_compose_version = "2.5.3"
+    val splash_screen_version = "1.0.0"
 
     implementation("androidx.compose.ui:ui:$compose_version")
     implementation("androidx.compose.ui:ui-tooling:$compose_version")
@@ -72,5 +73,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_core_version")
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
+    implementation("androidx.core:core-splashscreen:$splash_screen_version")
     kapt("androidx.room:room-compiler:$room_version")
 }

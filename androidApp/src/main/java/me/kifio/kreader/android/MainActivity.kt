@@ -1,6 +1,7 @@
 package me.kifio.kreader.android
 
 import android.os.Bundle
+import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
@@ -16,67 +17,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import me.kifio.kreader.android.bookshelf.BookshelfView
 import me.kifio.kreader.android.bookshelf.BookshelfViewModel
 import me.kifio.kreader.android.reader.ReaderActivityContract
 import org.readium.r2.shared.extensions.tryOrLog
-
-sealed class Screen(val route: String) {
-    object Splash : Screen("splash_screen")
-    object Home : Screen("home_screen")
-}
-
-@Composable
-fun SplashScreen(navController: NavHostController, splashViewModel: SplashViewModel) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        if (splashViewModel.readyState) {
-            navController.navigate(Screen.Home.route)
-        }
-    }
-}
-
-@Composable
-fun SetupNavGraph(
-    navController: NavHostController,
-    bookShelfViewModel: BookshelfViewModel,
-    splashViewModel: SplashViewModel,
-    openFilePicker: () -> Unit,
-    openBook: (Long) -> Unit
-) {
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Splash.route
-    ) {
-        composable(route = Screen.Splash.route) {
-            SplashScreen(navController = navController, splashViewModel = splashViewModel)
-        }
-        composable(route = Screen.Home.route) {
-            MyApplicationTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
-                ) {
-                    BookshelfView(
-                        navController.context,
-                        bookShelfViewModel,
-                        openFilePicker,
-                        openBook
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun MyApplicationTheme(
@@ -114,17 +62,16 @@ fun MyApplicationTheme(
 
 class MainActivity : ComponentActivity() {
 
-    private val bookShelfViewModel: BookshelfViewModel by viewModels()
-    private val splashViewModel: SplashViewModel by viewModels()
+    private val bookShelfVM: BookshelfViewModel by viewModels()
 
     private val getContent =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            uri?.let { bookShelfViewModel.saveBookToLocalStorage(this, it) }
+            uri?.let { bookShelfVM.saveBookToLocalStorage(this, it) }
         }
 
     private val readerLauncher: ActivityResultLauncher<ReaderActivityContract.Arguments> =
         registerForActivityResult(ReaderActivityContract()) { input ->
-            input?.let { tryOrLog { bookShelfViewModel.closeBook(this, input.bookId) } }
+            input?.let { tryOrLog { bookShelfVM.closeBook(this, input.bookId) } }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -132,19 +79,34 @@ class MainActivity : ComponentActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        bookShelfViewModel.setup(this)
-        splashViewModel.showSplash()
+        installSplashScreen()
 
-        setContent {
-            val navController = rememberNavController()
-            SetupNavGraph(
-                navController = navController,
-                bookShelfViewModel = bookShelfViewModel,
-                splashViewModel = splashViewModel,
-                openBook = ::openBook,
-                openFilePicker = ::openFilePicker
-            )
-        }
+        window.decorView.viewTreeObserver.addOnPreDrawListener(
+            object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    // Check if the initial data is ready.
+                    return if (bookShelfVM.shelfState != null) {
+                        // The content is ready; start drawing.
+                        setContent {
+                            MyApplicationTheme {
+                                Surface(
+                                    modifier = Modifier.fillMaxSize(),
+                                    color = MaterialTheme.colors.background
+                                ) {
+                                    BookshelfView(this@MainActivity, bookShelfVM, ::openFilePicker, ::openBook)
+                                }
+                            }
+                        }
+                        window.decorView.viewTreeObserver.removeOnPreDrawListener(this)
+                        true
+                    } else {
+                        false
+                    }
+                }
+            }
+        )
+
+        bookShelfVM.setup(this)
     }
 
     private fun openFilePicker() =
