@@ -1,17 +1,17 @@
 plugins {
-    id("com.android.application")
-    kotlin("android")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin)
     id("kotlin-kapt")
     id("kotlin-parcelize")
 }
 
 android {
     namespace = "me.kifio.kreader.android"
-    compileSdk = 33
+    compileSdk = 34
     defaultConfig {
         applicationId = "me.kifio.kreader.android"
         minSdk = 26
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0.2"
     }
@@ -20,7 +20,7 @@ android {
         viewBinding = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.1.0"
+        kotlinCompilerExtensionVersion = "1.5.9"
     }
     packagingOptions {
         resources {
@@ -32,13 +32,24 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
         }
     }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+    buildToolsVersion = "34.0.0"
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 dependencies {
-    val compose_version = "1.2.1"
     val readium_version = "2.2.1"
     val room_version = "2.4.1"
     val lifecycle_version = "2.5.1"
@@ -52,11 +63,11 @@ dependencies {
     val navigation_compose_version = "2.5.3"
     val splash_screen_version = "1.0.0"
 
-    implementation("androidx.compose.ui:ui:$compose_version")
-    implementation("androidx.compose.ui:ui-tooling:$compose_version")
-    implementation("androidx.compose.ui:ui-tooling-preview:$compose_version")
-    implementation("androidx.compose.foundation:foundation:$compose_version")
-    implementation("androidx.compose.material:material:$compose_version")
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.material)
     implementation("androidx.navigation:navigation-compose:$navigation_compose_version")
     implementation("androidx.activity:activity-compose:$activity_compose_version")
     implementation("androidx.paging:paging-runtime:$paging_version")

@@ -13,6 +13,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.SeekBar
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
 import androidx.core.view.WindowCompat
@@ -38,17 +39,20 @@ import org.readium.r2.shared.publication.Publication
  */
 open class ReaderActivity : AppCompatActivity() {
 
-    private lateinit var modelFactory: ReaderViewModel.Factory
-    private lateinit var model: ReaderViewModel
+    private val model: ReaderViewModel by viewModels {
+        ReaderViewModel.Factory(
+            applicationContext as Application,
+            ReaderActivityContract.parseIntent(this)
+        )
+    }
+
     private lateinit var binding: ActivityReaderBinding
     private lateinit var readerFragment: VisualReaderFragment
     private var buttonClicked: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val arguments = ReaderActivityContract.parseIntent(this)
-        val app = applicationContext as Application
-        modelFactory = ReaderViewModel.Factory(app, arguments)
-        model = ViewModelProvider(this)[ReaderViewModel::class.java]
+//        val arguments = ReaderActivityContract.parseIntent(this)
+//        val app = applicationContext as Application
 
         /*
          * [ReaderViewModel.Factory] provides dummy publications if the [ReaderActivity] is restored
@@ -203,10 +207,6 @@ open class ReaderActivity : AppCompatActivity() {
         }
 
         return supportFragmentManager.findFragmentByTag(VisualReaderFragment::class.simpleName) as VisualReaderFragment?
-    }
-
-    override fun getDefaultViewModelProviderFactory(): ViewModelProvider.Factory {
-        return modelFactory
     }
 
     override fun finish() {

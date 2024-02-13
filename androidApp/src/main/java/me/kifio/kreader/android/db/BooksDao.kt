@@ -24,27 +24,27 @@ interface BooksDao {
      * @return ID of the book that was added (primary key)
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertBook(book: Book): Long
+    fun insertBook(book: Book): Long
 
     /**
      * Deletes a book
      * @param bookId The ID of the book
      */
     @Query("DELETE FROM " + Book.TABLE_NAME + " WHERE " + Book.ID + " = :bookId")
-    suspend fun deleteBook(bookId: Long)
+    fun deleteBook(bookId: Long)
 
     /**
      * Retrieve a book from its ID.
      */
     @Query("SELECT * FROM " + Book.TABLE_NAME + " WHERE " + Book.ID + " = :id")
-    suspend fun get(id: Long): Book?
+    fun get(id: Long): Book?
 
     /**
      * Retrieve all books
      * @return List of books as LiveData
      */
     @Query("SELECT * FROM " + Book.TABLE_NAME + " ORDER BY " + Book.CREATION_DATE + " desc")
-    suspend fun getAllBooks(): List<Book>
+    fun getAllBooks(): List<Book>
 
     /**
      * Retrieve all bookmarks for a specific book
@@ -52,7 +52,7 @@ interface BooksDao {
      * @return List of bookmarks for the book as LiveData
      */
     @Query("SELECT * FROM " + Bookmark.TABLE_NAME + " WHERE " + Bookmark.BOOK_ID + " = :bookId")
-    suspend fun getBookmarksForBook(bookId: Long): MutableList<Bookmark>
+    fun getBookmarksForBook(bookId: Long): MutableList<Bookmark>
 
     /**
      * Inserts a bookmark
@@ -60,13 +60,13 @@ interface BooksDao {
      * @return The ID of the bookmark that was added (primary key)
      */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertBookmark(bookmark: Bookmark): Long
+    fun insertBookmark(bookmark: Bookmark): Long
 
     /**
      * Deletes a bookmark
      */
     @Delete(entity = Bookmark::class)
-    suspend fun deleteBookmark(bookmark: Bookmark)
+    fun deleteBookmark(bookmark: Bookmark)
 
     /**
      * Saves book progression
@@ -74,5 +74,5 @@ interface BooksDao {
      * @param id The book to update
      */
     @Query("UPDATE " + Book.TABLE_NAME + " SET " + Book.PROGRESSION + " = :locator WHERE " + Book.ID + "= :id")
-    suspend fun saveProgression(locator: String, id: Long)
+    fun saveProgression(locator: String, id: Long)
 }

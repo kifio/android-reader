@@ -12,7 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
-import me.kifio.kreader.android.BuildConfig.DEBUG
+//import me.kifio.kreader.android.BuildConfig.DEBUG
 import me.kifio.kreader.android.bookshelf.BookRepository
 import me.kifio.kreader.android.db.BookDatabase
 import me.kifio.kreader.android.reader.ReaderRepository
@@ -44,7 +44,7 @@ class Application : android.app.Application() {
          * Starting HTTP server.
          */
 
-        val s = ServerSocket(if (DEBUG) 8080 else 0)
+        val s = ServerSocket(0)
         s.close()
         server = Server(s.localPort, applicationContext)
         startServer()

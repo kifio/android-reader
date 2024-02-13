@@ -6,6 +6,8 @@
 
 package me.kifio.kreader.android.bookshelf
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import me.kifio.kreader.android.db.BooksDao
 import me.kifio.kreader.android.model.Book
 import me.kifio.kreader.android.model.Bookmark
@@ -15,53 +17,65 @@ import org.readium.r2.shared.publication.Publication
 import org.readium.r2.shared.publication.indexOfFirstWithHref
 import org.readium.r2.shared.util.mediatype.MediaType
 
-val Metadata.authorName: String get() =
-    authors.firstOrNull()?.name ?: ""
+val Metadata.authorName: String
+    get() = authors.firstOrNull()?.name ?: ""
 
 class BookRepository(private val booksDao: BooksDao) {
 
-    suspend fun books(): List<Book> = booksDao.getAllBooks()
-
-    suspend fun get(id: Long) = booksDao.get(id)
-
-    suspend fun insertBook(href: String, mediaType: MediaType, publication: Publication): Long {
-        val book = Book(
-            creation = System.currentTimeMillis(),
-            title = publication.metadata.title,
-            author = publication.metadata.authorName,
-            href = href,
-            identifier = publication.metadata.identifier ?: "",
-            type = mediaType.toString(),
-            progression = "{}"
-        )
-        return booksDao.insertBook(book)
+    suspend fun books(): List<Book> = withContext(Dispatchers.IO) {
+        booksDao.getAllBooks()
     }
 
-    suspend fun deleteBook(id: Long) = booksDao.deleteBook(id)
+    suspend fun get(id: Long) = withContext(Dispatchers.IO) {
+        booksDao.get(id)
+    }
 
-    suspend fun saveProgression(locator: Locator, bookId: Long) =
+    suspend fun insertBook(href: String, mediaType: MediaType, publication: Publication): Long =
+        withContext(Dispatchers.IO) {
+            val book = Book(
+                creation = System.currentTimeMillis(),
+                title = publication.metadata.title,
+                author = publication.metadata.authorName,
+                href = href,
+                identifier = publication.metadata.identifier ?: "",
+                type = mediaType.toString(),
+                progression = "{}"
+            )
+            booksDao.insertBook(book)
+        }
+
+    suspend fun deleteBook(id: Long) = withContext(Dispatchers.IO) {
+        booksDao.deleteBook(id)
+    }
+
+    suspend fun saveProgression(locator: Locator, bookId: Long) = withContext(Dispatchers.IO) {
         booksDao.saveProgression(locator.toJSON().toString(), bookId)
-
-    suspend fun insertBookmark(bookId: Long, publication: Publication, locator: Locator): Bookmark {
-        val resource = publication.readingOrder.indexOfFirstWithHref(locator.href)!!
-        val bookmark = Bookmark(
-            creation = System.currentTimeMillis(),
-            bookId = bookId,
-            publicationId = publication.metadata.identifier ?: publication.metadata.title,
-            resourceIndex = resource.toLong(),
-            resourceHref = locator.href,
-            resourceType = locator.type,
-            resourceTitle = locator.title.orEmpty(),
-            location = locator.locations.toJSON().toString(),
-            locatorText = Locator.Text().toJSON().toString()
-        )
-
-        val id = booksDao.insertBookmark(bookmark)
-        return bookmark.copy(id = id)
     }
+
+    suspend fun insertBookmark(bookId: Long, publication: Publication, locator: Locator): Bookmark =
+        withContext(Dispatchers.IO) {
+            val resource = publication.readingOrder.indexOfFirstWithHref(locator.href)!!
+            val bookmark = Bookmark(
+                creation = System.currentTimeMillis(),
+                bookId = bookId,
+                publicationId = publication.metadata.identifier ?: publication.metadata.title,
+                resourceIndex = resource.toLong(),
+                resourceHref = locator.href,
+                resourceType = locator.type,
+                resourceTitle = locator.title.orEmpty(),
+                location = locator.locations.toJSON().toString(),
+                locatorText = Locator.Text().toJSON().toString()
+            )
+            val id = booksDao.insertBookmark(bookmark)
+            bookmark.copy(id = id)
+        }
 
     suspend fun bookmarksForBook(bookId: Long): MutableList<Bookmark> =
-        booksDao.getBookmarksForBook(bookId)
+        withContext(Dispatchers.IO) {
+            booksDao.getBookmarksForBook(bookId)
+        }
 
-    suspend fun deleteBookmark(bookmark: Bookmark) = booksDao.deleteBookmark(bookmark)
+    suspend fun deleteBookmark(bookmark: Bookmark) = withContext(Dispatchers.IO) {
+        booksDao.deleteBookmark(bookmark)
+    }
 }

@@ -1,6 +1,7 @@
 *.iml
 .gradle
 .idea
+.project
 .DS_Store
 build
 captures
