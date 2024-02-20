@@ -1,7 +1,20 @@
 [versions]
 agp = "8.2.2"
 kotlin = "1.9.22"
+google-ksp = "1.9.22-1.0.17"
 androidx-compose = "1.6.1"
+readium = "2.2.1"
+room = "2.6.1"
+lifecycle = "2.7.0"
+paging = "3.2.1"
+coil = "2.2.2"
+insetter = "0.6.1"
+activity-compose = "1.8.2"
+fragment-ktx = "1.6.2"
+material = "1.11.0"
+coroutines-core = "1.7.1"
+navigation-compose = "2.7.7"
+splash-screen = "1.0.1"
 
 [libraries]
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "androidx-compose" }
@@ -9,8 +22,28 @@ androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "androidx-compose" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "androidx-compose" }
 androidx-compose-material = { group = "androidx.compose.material", name = "material", version.ref = "androidx-compose" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation-compose" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity-compose" }
+androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
+androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment-ktx" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+coil = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+insetter = { group = "dev.chrisbanes.insetter", name = "insetter", version.ref = "insetter" }
+lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+readium-shared = { group = "com.github.readium.kotlin-toolkit", name = "readium-shared", version.ref = "readium" }
+readium-streamer = { group = "com.github.readium.kotlin-toolkit", name = "readium-streamer", version.ref = "readium" }
+readium-navigator = { group = "com.github.readium.kotlin-toolkit", name = "readium-navigator", version.ref = "readium" }
+readium-lcp = { group = "com.github.readium.kotlin-toolkit", name = "readium-lcp", version.ref = "readium" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines-core" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splash-screen" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "google-ksp" }
+parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }

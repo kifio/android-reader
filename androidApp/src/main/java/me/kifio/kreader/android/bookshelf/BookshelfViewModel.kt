@@ -19,11 +19,14 @@ import me.kifio.kreader.android.utils.extensions.copyToLocalFile
 import org.readium.r2.shared.extensions.mediaType
 import org.readium.r2.shared.publication.Publication
 import org.readium.r2.shared.publication.asset.FileAsset
+import org.readium.r2.shared.publication.services.cover
 import org.readium.r2.shared.publication.services.coverFitting
 import org.readium.r2.streamer.Streamer
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.lang.Math.round
+import kotlin.math.roundToInt
 
 sealed class BookShelfError {
     object BookAlreadyExist : BookShelfError()
@@ -34,6 +37,8 @@ sealed class BookShelfError {
 val Context.screenWidth: Int
     get() = resources.displayMetrics.widthPixels
 
+val Context.screenHeight: Int
+    get() = resources.displayMetrics.heightPixels
 
 class BookshelfViewModel : ViewModel() {
 
@@ -124,7 +129,7 @@ class BookshelfViewModel : ViewModel() {
             val coverImageFile = File("${ctx.filesDir}covers/${bookId}.png")
 
             val bitmap: Bitmap = publication.coverFitting(
-                Size(ctx.screenWidth / 2, ctx.screenWidth / 2)
+                Size((ctx.screenWidth / 2.5f).roundToInt(), ctx.screenHeight)
             ) ?: return@withContext null
 
             var fos: FileOutputStream? = null

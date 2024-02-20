@@ -10,11 +10,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -27,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import coil.compose.AsyncImage
+import kotlinx.coroutines.launch
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.model.Book
 import java.io.File
@@ -67,7 +70,14 @@ fun BookshelfView(
         content = { padding ->
             Box(
                 modifier = Modifier
-                    .padding(padding)
+                    .padding(
+                        top = padding.calculateTopPadding(),
+                        start = padding.calculateStartPadding(LayoutDirection.Ltr),
+                        end = padding.calculateEndPadding(LayoutDirection.Ltr),
+                        bottom = WindowInsets.navigationBars
+                            .asPaddingValues()
+                            .calculateBottomPadding()
+                    )
             ) {
                 Content(ctx, viewModel, openBook)
             }
@@ -215,7 +225,7 @@ fun BookItem(ctx: Context, book: Book, viewModel: BookshelfViewModel, openBook: 
             .fillMaxWidth()
             .clickable(onClick = { viewModel.openBook(ctx, book) { openBook(it) } })
             .background(Color.White)
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp, horizontal = 8.dp),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Top,
     ) {
@@ -224,7 +234,7 @@ fun BookItem(ctx: Context, book: Book, viewModel: BookshelfViewModel, openBook: 
             contentDescription = "",
             modifier = Modifier
                 .width((LocalConfiguration.current.screenWidthDp.dp).div(2.5f))
-                .shadow(elevation = 8.dp, shape = MaterialTheme.shapes.medium)
+                .shadow(elevation = 4.dp, shape = MaterialTheme.shapes.small)
         )
         Column(
             modifier = Modifier

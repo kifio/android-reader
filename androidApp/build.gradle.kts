@@ -1,26 +1,35 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin)
-    id("kotlin-kapt")
-    id("kotlin-parcelize")
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.parcelize)
 }
 
 android {
+    val target_sdk = 34
+    val compile_sdk = 34
+    val min_sdk = 26
+    val version_code = 3
+    val version_name = "1.0.3"
+    val kotlin_compiler_extension_version = "1.5.9"
+    val jvm_target = "11"
+    val build_tools_version = "34.0.0"
+
     namespace = "me.kifio.kreader.android"
-    compileSdk = 34
+    compileSdk = compile_sdk
     defaultConfig {
         applicationId = "me.kifio.kreader.android"
-        minSdk = 26
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.2"
+        minSdk = min_sdk
+        targetSdk = target_sdk
+        versionCode = version_code
+        versionName = version_name
     }
     buildFeatures {
         compose = true
         viewBinding = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.9"
+        kotlinCompilerExtensionVersion = kotlin_compiler_extension_version
     }
     packagingOptions {
         resources {
@@ -32,7 +41,7 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
         }
     }
     compileOptions {
@@ -40,9 +49,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = jvm_target
     }
-    buildToolsVersion = "34.0.0"
+    buildToolsVersion = build_tools_version
 }
 
 kotlin {
@@ -50,40 +59,27 @@ kotlin {
 }
 
 dependencies {
-    val readium_version = "2.2.1"
-    val room_version = "2.4.1"
-    val lifecycle_version = "2.5.1"
-    val paging_version = "3.1.1"
-    val coil_version = "2.2.2"
-    val insetter_version = "0.6.1"
-    val activity_compose_version = "1.6.0"
-    val fragment_ktx_version = "1.5.4"
-    val material_version = "1.7.0"
-    val coroutines_core_version = "1.6.0"
-    val navigation_compose_version = "2.5.3"
-    val splash_screen_version = "1.0.0"
-
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material)
-    implementation("androidx.navigation:navigation-compose:$navigation_compose_version")
-    implementation("androidx.activity:activity-compose:$activity_compose_version")
-    implementation("androidx.paging:paging-runtime:$paging_version")
-    implementation("androidx.fragment:fragment-ktx:$fragment_ktx_version")
-    implementation("io.coil-kt:coil-compose:$coil_version")
-    implementation("io.coil-kt:coil:$coil_version")
-    implementation("com.google.android.material:material:$material_version")
-    implementation("dev.chrisbanes.insetter:insetter:$insetter_version")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
-    implementation("com.github.readium.kotlin-toolkit:readium-shared:$readium_version")
-    implementation("com.github.readium.kotlin-toolkit:readium-streamer:$readium_version")
-    implementation("com.github.readium.kotlin-toolkit:readium-navigator:$readium_version")
-    implementation("com.github.readium.kotlin-toolkit:readium-lcp:$readium_version")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_core_version")
-    implementation("androidx.room:room-runtime:$room_version")
-    implementation("androidx.room:room-ktx:$room_version")
-    implementation("androidx.core:core-splashscreen:$splash_screen_version")
-    kapt("androidx.room:room-compiler:$room_version")
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.coil.compose)
+    implementation(libs.coil)
+    implementation(libs.material)
+    implementation(libs.insetter)
+    implementation(libs.lifecycle.viewmodel.compose)
+    implementation(libs.readium.shared)
+    implementation(libs.readium.streamer)
+    implementation(libs.readium.navigator)
+    implementation(libs.readium.lcp)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.core.splashscreen)
+    ksp(libs.androidx.room.compiler)
 }
