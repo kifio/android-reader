@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -55,6 +56,7 @@ fun BookshelfView(
                     Image(
                         painter = painterResource(id = R.drawable.ic_add_circle_outline_24),
                         contentDescription = "",
+                        colorFilter = ColorFilter.tint(MaterialTheme.colors.onBackground),
                         modifier = Modifier
                             .padding(
                                 top = WindowInsets.statusBars
@@ -90,7 +92,6 @@ fun AppBarTitle(viewModel: BookshelfViewModel) {
         modifier = Modifier
             .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()),
         text = stringResource(id = R.string.bookshelf_screen_title),
-        color = Color.Black,
         style = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.Bold),
     )
 }
@@ -124,7 +125,7 @@ fun Content(ctx: Context, viewModel: BookshelfViewModel, openBook: (Long) -> Uni
             contentAlignment = Alignment.Center
         ) {
             Text(
-                color = Color.Black,
+                color = MaterialTheme.colors.onBackground,
                 fontSize = 14.sp,
                 text = stringResource(id = R.string.bookshelf_is_empty)
             )
@@ -172,7 +173,7 @@ fun BookshelfContent(
 
                     val color by animateColorAsState(
                         when (dismissState.targetValue) {
-                            DismissValue.Default -> Color.White
+                            DismissValue.Default -> MaterialTheme.colors.background
                             else -> Color.Red
                         }
                     )
@@ -224,7 +225,7 @@ fun BookItem(ctx: Context, book: Book, viewModel: BookshelfViewModel, openBook: 
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = { viewModel.openBook(ctx, book) { openBook(it) } })
-            .background(Color.White)
+            .background(MaterialTheme.colors.background)
             .padding(vertical = 8.dp, horizontal = 8.dp),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Top,
@@ -244,7 +245,7 @@ fun BookItem(ctx: Context, book: Book, viewModel: BookshelfViewModel, openBook: 
         ) {
             Text(
                 text = book.title,
-                color = Color.Black,
+                color = MaterialTheme.colors.onBackground,
                 style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Medium),
                 fontSize = TextUnit(value = 20F, type = TextUnitType.Sp)
             )

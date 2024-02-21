@@ -18,6 +18,5 @@ sealed class ReaderInitData {
 data class VisualReaderInitData(
     override val bookId: Long,
     override val publication: Publication,
-    val baseUrl: URL? = null,
     val initialLocation: Locator? = null
 ) : ReaderInitData()

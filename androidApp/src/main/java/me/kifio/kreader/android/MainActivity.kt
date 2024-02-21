@@ -34,8 +34,8 @@ fun MyApplicationTheme(
 
     val colors = if (darkTheme) {
         darkColors(
-            background = Color.White,
-            onBackground = Color.Black,
+            background = Color(0xFF3C3C3C),
+            onBackground = Color.White,
         )
     } else {
         lightColors(

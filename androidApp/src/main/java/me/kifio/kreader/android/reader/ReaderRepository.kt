@@ -32,7 +32,6 @@ import java.net.URL
 class ReaderRepository(
     private val application: Application,
     private val streamer: Streamer,
-    private val server: Server,
     private val bookRepository: BookRepository
 ) {
     object CancellationException : Exception()
@@ -84,17 +83,7 @@ class ReaderRepository(
         publication: Publication,
         initialLocator: Locator?
     ): VisualReaderInitData {
-        val url = prepareToServe(publication)
-        return VisualReaderInitData(bookId, publication, url, initialLocator)
-    }
-
-    private fun prepareToServe(publication: Publication): URL {
-        val userProperties =
-            application.filesDir.path + "/" + Injectable.Style.rawValue + "/UserProperties.json"
-        val url =
-            server.addPublication(publication, userPropertiesFile = File(userProperties))
-
-        return url ?: throw Exception("Cannot add the publication to the HTTP server.")
+        return VisualReaderInitData(bookId, publication, initialLocator)
     }
 
     fun close(bookId: Long) {

@@ -15,6 +15,7 @@ import androidx.fragment.app.commitNow
 import androidx.lifecycle.ViewModelProvider
 import me.kifio.kreader.android.R
 import org.readium.r2.navigator.Navigator
+import org.readium.r2.navigator.pdf.PdfEngineProvider
 import org.readium.r2.navigator.pdf.PdfNavigatorFragment
 import org.readium.r2.shared.fetcher.Resource
 import org.readium.r2.shared.publication.Link
@@ -34,8 +35,8 @@ class PdfReaderFragment : VisualReaderFragment(), PdfNavigatorFragment.Listener 
 
         val readerData = model.readerInitData as VisualReaderInitData
 
-        childFragmentManager.fragmentFactory =
-            PdfNavigatorFragment.createFactory(publication, readerData.initialLocation, this)
+//        childFragmentManager.fragmentFactory =
+//            PdfNavigatorFragment.createFactory(publication, readerData.initialLocation, )
 
         super.onCreate(savedInstanceState)
     }

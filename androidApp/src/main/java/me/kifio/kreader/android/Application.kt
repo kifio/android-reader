@@ -12,7 +12,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
-//import me.kifio.kreader.android.BuildConfig.DEBUG
 import me.kifio.kreader.android.bookshelf.BookRepository
 import me.kifio.kreader.android.db.BookDatabase
 import me.kifio.kreader.android.reader.ReaderRepository
@@ -20,13 +19,9 @@ import org.readium.r2.lcp.LcpService
 import org.readium.r2.streamer.Streamer
 import org.readium.r2.streamer.server.Server
 import java.io.IOException
-import java.net.ServerSocket
 import java.util.*
 
 class Application : android.app.Application() {
-
-    lateinit var server: Server
-        private set
 
     lateinit var bookRepository: BookRepository
         private set
@@ -39,16 +34,6 @@ class Application : android.app.Application() {
 
     override fun onCreate() {
         super.onCreate()
-
-        /*
-         * Starting HTTP server.
-         */
-
-        val s = ServerSocket(0)
-        s.close()
-        server = Server(s.localPort, applicationContext)
-        startServer()
-
         /*
          * Initializing repositories
          */
@@ -69,51 +54,10 @@ class Application : android.app.Application() {
                 ReaderRepository(
                     this@Application,
                     streamer,
-                    server,
                     bookRepository
                 )
             }
 
-    }
-
-    override fun onTerminate() {
-        super.onTerminate()
-        stopServer()
-    }
-
-    private fun startServer() {
-        if (!server.isAlive) {
-            try {
-                server.start()
-            } catch (e: IOException) {
-                // do nothing
-            }
-            if (server.isAlive) {
-//                // Add your own resources here
-//                server.loadCustomResource(assets.open("scripts/test.js"), "test.js")
-//                server.loadCustomResource(assets.open("styles/test.css"), "test.css")
-//                server.loadCustomFont(assets.open("fonts/test.otf"), applicationContext, "test.otf")
-            }
-        }
-    }
-
-    private fun stopServer() {
-        if (server.isAlive) {
-            server.stop()
-        }
-    }
-
-    private fun computeAppDirectory(): String {
-        val properties = Properties()
-        val inputStream = assets.open("configs/config.properties")
-        properties.load(inputStream)
-        val useExternalFileDir =
-            properties.getProperty("useExternalFileDir", "false")!!.toBoolean()
-        return if (useExternalFileDir) {
-            getExternalFilesDir(null)?.path + "/"
-        } else {
-            filesDir?.path + "/"
-        }
     }
 }
 
