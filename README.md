@@ -18,7 +18,7 @@
 </a>
 <br>
 <a href="https://appgallery.huawei.com/app/C110328443">
-    <img src='./badges/explore-it-on-huawei-appgallery-seeklogo.svg' width="320" >
+    <img src='./badges/explore-it-on-huawei-appgallery-seeklogo.png' width="320" >
 </a>
 </p>
 
