@@ -10,7 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -30,10 +29,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import coil.compose.AsyncImage
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.model.Book
 import java.io.File
+
 
 @Composable
 fun BookshelfView(
@@ -41,7 +43,10 @@ fun BookshelfView(
     viewModel: BookshelfViewModel,
     openFilePicker: () -> Unit,
     openBook: (Long) -> Unit
-) =
+) {
+    val scaffoldState = rememberScaffoldState()
+    val coroutineScope = rememberCoroutineScope()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -81,10 +86,11 @@ fun BookshelfView(
                             .calculateBottomPadding()
                     )
             ) {
-                Content(ctx, viewModel, openBook)
+                Content(ctx, viewModel, scaffoldState, coroutineScope, openBook)
             }
         }
     )
+}
 
 @Composable
 fun AppBarTitle(viewModel: BookshelfViewModel) {
@@ -97,7 +103,13 @@ fun AppBarTitle(viewModel: BookshelfViewModel) {
 }
 
 @Composable
-fun Content(ctx: Context, viewModel: BookshelfViewModel, openBook: (Long) -> Unit) {
+fun Content(
+    ctx: Context,
+    viewModel: BookshelfViewModel,
+    scaffoldState: ScaffoldState,
+    coroutineScope: CoroutineScope,
+    openBook: (Long) -> Unit
+) {
     val books = viewModel.shelfState
     when (viewModel.errorsState) {
         BookShelfError.BookAlreadyExist -> Toast.makeText(

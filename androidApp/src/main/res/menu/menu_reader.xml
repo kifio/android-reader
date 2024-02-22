@@ -6,8 +6,6 @@
     <item
         android:id="@+id/bookmark"
         android:icon="@drawable/ic_baseline_bookmark_border_24"
-        android:iconTint="@color/primary"
-        android:iconTintMode="src_over"
         android:title="@string/epubactivity_set_bookmark"
         app:showAsAction="always"
         tools:ignore="AlwaysShowAction" />

@@ -36,7 +36,6 @@
         android:elevation="8dp"
         android:padding="16dp"
         android:src="@drawable/ic_baseline_arrow_back_24"
-        android:tint="@color/primary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -48,7 +47,6 @@
         android:elevation="8dp"
         android:padding="16dp"
         android:src="@drawable/ic_baseline_format_list_bulleted_24"
-        android:tint="@color/primary"
         app:layout_constraintStart_toEndOf="@id/navigate_up"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -60,7 +58,6 @@
         android:elevation="8dp"
         android:padding="16dp"
         android:src="@drawable/ic_baseline_bookmarks_24"
-        android:tint="@color/primary"
         app:layout_constraintStart_toEndOf="@id/contents"
         app:layout_constraintTop_toTopOf="parent" />
 

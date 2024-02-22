@@ -14,17 +14,17 @@
         <item name="android:background">@color/background</item>
 
         <item name="android:navigationBarColor">
-            @android:color/white
+            @color/background
         </item>
 
         <!-- Optional: set to transparent if your app is drawing behind the status bar. -->
         <item name="android:statusBarColor">
-            @android:color/white
+            @color/background
         </item>
 
         <!-- Optional: set the status bar light and content dark. -->
         <item name="android:windowLightStatusBar">
-            true
+            @bool/windowLightStatusBar
         </item>
 
     </style>

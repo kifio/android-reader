@@ -28,7 +28,6 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
     override lateinit var navigator: Navigator
 
     private lateinit var publication: Publication
-    private lateinit var navigatorFragment: EpubNavigatorFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +47,7 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
                 config = EpubNavigatorFragment.Configuration(
                     readiumCssRsProperties = RsProperties(
                         textColor = Color.Int(ResourcesCompat.getColor(resources, R.color.primary, null)),
-                        backgroundColor = Color.Int(ResourcesCompat.getColor(resources, R.color.background, null))
+                        backgroundColor = Color.Int(ResourcesCompat.getColor(resources, R.color.background, null)),
                     )
                 )
             )
@@ -73,7 +72,6 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
             }
         }
         navigator = childFragmentManager.findFragmentByTag(navigatorFragmentTag) as Navigator
-        navigatorFragment = navigator as EpubNavigatorFragment
 
         return view
     }

@@ -9,8 +9,8 @@ android {
     val target_sdk = 34
     val compile_sdk = 34
     val min_sdk = 26
-    val version_code = 3
-    val version_name = "1.0.3"
+    val version_code = 4
+    val version_name = "1.0.4"
     val kotlin_compiler_extension_version = "1.5.9"
     val jvm_target = "11"
     val build_tools_version = "34.0.0"

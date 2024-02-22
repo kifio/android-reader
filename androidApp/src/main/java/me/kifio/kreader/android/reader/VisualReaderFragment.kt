@@ -63,12 +63,6 @@ abstract class VisualReaderFragment : Fragment(), VisualNavigator.Listener, Navi
             }
             .launchIn(viewScope)
 
-        (navigator as? DecorableNavigator)?.let { navigator ->
-            model.searchDecorations
-                .onEach { navigator.applyDecorations(it, "search") }
-                .launchIn(viewScope)
-        }
-
         model.fragmentChannel.receive(this) { event ->
             when (event) {
                 is ReaderViewModel.FragmentEvent.GoToLocator -> {

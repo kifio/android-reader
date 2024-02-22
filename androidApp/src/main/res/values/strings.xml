@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Просто читалка</string>
+    <string name="app_name">Читалочка</string>
     <string name="epubactivity_set_bookmark">Добавить закладку</string>
     <string name="chapter_page">Страница %d</string>
     <string name="bookshelf_screen_title">Ваши книги</string>
