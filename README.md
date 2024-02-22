@@ -10,13 +10,13 @@
 
 <p align="left">
 <a href="https://apps.rustore.ru/app/me.kifio.kreader.android">
-    <img src='./badges/logo-monochrome-light.svg' width="320" >
+    <img src='./badges/logo-monochrome-light.png'  >
 </a>
-
+<br>
 <a href="https://play.google.com/store/apps/details?id=me.kifio.kreader.android">
-    <img src='./badges/google-play-badge.png' width="320" >
+    <img src='./badges/google-play-badge.png'  >
 </a>
-
+<br>
 <a href="https://appgallery.huawei.com/app/C110328443">
     <img src='./badges/explore-it-on-huawei-appgallery-seeklogo.svg' width="320" >
 </a>
