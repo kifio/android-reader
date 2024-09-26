@@ -12,7 +12,7 @@
 ## 👇 Ссылки на скачивание 👇:
 
 <p align="left">
-<a href="https://appgallery.huawei.com/app/C110328443">
+<a href="https://www.rustore.ru/catalog/app/me.kifio.kreader.android">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./badges/logo-monochrome-dark.svg" width="320" height="112">
   <source media="(prefers-color-scheme: light)" srcset="./badges/logo-monochrome-light.svg" width="320" height="112">
