@@ -11,6 +11,7 @@
 
 ## 👇 Ссылки на скачивание 👇:
 
+<p align="left">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./badges/logo-monochrome-dark.png">
   <source media="(prefers-color-scheme: light)" srcset="./badges/logo-monochrome-light.png">
