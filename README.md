@@ -13,9 +13,9 @@
 
 <p align="left">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./badges/logo-monochrome-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="./badges/logo-monochrome-light.png">
-        <img alt="Shows a black logo in light color mode and a white one in dark color mode." src="">
+  <source media="(prefers-color-scheme: dark)" srcset="./badges/logo-monochrome-dark.svg" width="320" height="112">
+  <source media="(prefers-color-scheme: light)" srcset="./badges/logo-monochrome-light.svg" width="320" height="112">
+  <img alt="Shows a black logo in light color mode and a white one in dark color mode." src="">
 </picture>
 <br>
 <a href="https://appgallery.huawei.com/app/C110328443">
