@@ -13,7 +13,7 @@
 
 <p align="left">
 <a href="https://www.rustore.ru/catalog/app/me.kifio.kreader.android">
-    <img src='./badges/logo-monochrome-light.png'  >
+    <img src='./badges/logo-monochrome-light.svg'  >
 </a>
 <br>
 <a href="https://appgallery.huawei.com/app/C110328443">
