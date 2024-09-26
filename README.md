@@ -11,10 +11,10 @@
 
 ## 👇 Ссылки на скачивание 👇:
 
-<p align="left">
-<a href="https://www.rustore.ru/catalog/app/me.kifio.kreader.android">
-    <img src='./badges/logo-monochrome-light.svg'  >
-</a>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./badges/logo-monochrome-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="./badges/logo-monochrome-light.png">
+</picture>
 <br>
 <a href="https://appgallery.huawei.com/app/C110328443">
     <img src='./badges/explore-it-on-huawei-appgallery-seeklogo.png' width="320" >
