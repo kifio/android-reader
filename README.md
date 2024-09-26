@@ -15,6 +15,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./badges/logo-monochrome-dark.png">
   <source media="(prefers-color-scheme: light)" srcset="./badges/logo-monochrome-light.png">
+        <img alt="Shows a black logo in light color mode and a white one in dark color mode." src="">
 </picture>
 <br>
 <a href="https://appgallery.huawei.com/app/C110328443">
