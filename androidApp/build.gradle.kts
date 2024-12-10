@@ -6,30 +6,21 @@ plugins {
 }
 
 android {
-    val target_sdk = 34
-    val compile_sdk = 34
-    val min_sdk = 26
-    val version_code = 4
-    val version_name = "1.0.4"
-    val kotlin_compiler_extension_version = "1.5.9"
-    val jvm_target = "11"
-    val build_tools_version = "34.0.0"
-
     namespace = "me.kifio.kreader.android"
-    compileSdk = compile_sdk
+    compileSdk = 35
     defaultConfig {
         applicationId = "me.kifio.kreader.android"
-        minSdk = min_sdk
-        targetSdk = target_sdk
-        versionCode = version_code
-        versionName = version_name
+        minSdk = 26
+        targetSdk = 35
+        versionCode = 5
+        versionName = "1.0.5"
     }
     buildFeatures {
         compose = true
         viewBinding = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = kotlin_compiler_extension_version
+        kotlinCompilerExtensionVersion = "2.0.10"
     }
     packagingOptions {
         resources {
@@ -45,17 +36,17 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = jvm_target
+        jvmTarget = "21"
     }
-    buildToolsVersion = build_tools_version
+//    buildToolsVersion = buildToolsVersion1
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 dependencies {
