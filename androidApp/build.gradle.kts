@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.parcelize)
 }
 
@@ -72,5 +73,6 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.navigation.fragment)
     ksp(libs.androidx.room.compiler)
 }

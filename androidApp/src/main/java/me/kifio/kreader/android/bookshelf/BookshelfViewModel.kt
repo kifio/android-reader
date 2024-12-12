@@ -16,29 +16,23 @@ import me.kifio.kreader.android.Application
 import me.kifio.kreader.android.model.Book
 import me.kifio.kreader.android.reader.ReaderRepository
 import me.kifio.kreader.android.utils.extensions.copyToLocalFile
+import me.kifio.kreader.android.utils.extensions.screenHeight
+import me.kifio.kreader.android.utils.extensions.screenWidth
 import org.readium.r2.shared.extensions.mediaType
 import org.readium.r2.shared.publication.Publication
 import org.readium.r2.shared.publication.asset.FileAsset
-import org.readium.r2.shared.publication.services.cover
 import org.readium.r2.shared.publication.services.coverFitting
 import org.readium.r2.streamer.Streamer
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.lang.Math.round
 import kotlin.math.roundToInt
 
 sealed class BookShelfError {
-    object BookAlreadyExist : BookShelfError()
-    object FileNotCreatedError : BookShelfError()
-    object PublicationOpeningError : BookShelfError()
+    data object BookAlreadyExist : BookShelfError()
+    data object FileNotCreatedError : BookShelfError()
+    data object PublicationOpeningError : BookShelfError()
 }
-
-val Context.screenWidth: Int
-    get() = resources.displayMetrics.widthPixels
-
-val Context.screenHeight: Int
-    get() = resources.displayMetrics.heightPixels
 
 class BookshelfViewModel : ViewModel() {
 

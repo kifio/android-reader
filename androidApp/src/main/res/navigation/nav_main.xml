@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/bookshelf">
+
+    <fragment
+        android:id="@+id/bookshelf"
+        android:name="me.kifio.kreader.android.bookshelf.BookshelfFragment"
+        android:label="Bookshelf">
+
+<!--        &lt;!&ndash; Action to navigate from Profile to Friends List. &ndash;&gt;-->
+<!--        <action-->
+<!--            android:id="@+id/action_profile_to_friendslist"-->
+<!--            app:destination="@id/friendslist" />-->
+    </fragment>
+
+</navigation>

@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -34,6 +32,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.model.Book
+import me.kifio.kreader.android.utils.extensions.screenWidth
 import java.io.File
 
 
@@ -199,7 +198,7 @@ fun BookshelfContent(
                     ) {
                         if (dismissState.targetValue != DismissValue.Default) {
                             Icon(
-                                Icons.Default.Delete,
+                                painter = painterResource(R.drawable.ic_baseline_delete_sweep_24),
                                 tint = Color.White,
                                 contentDescription = "Delete Icon",
                                 modifier = Modifier.scale(1.5F)

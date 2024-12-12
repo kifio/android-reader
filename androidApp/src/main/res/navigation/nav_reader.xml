@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/reader">
+
+    <fragment
+        android:id="@+id/reader"
+        android:name="me.kifio.kreader.android.reader.EpubReaderFragment"
+        android:label="Bookshelf">
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/bookmarks"
+        android:name="me.kifio.kreader.android.outline.BookmarksFragment"
+        android:label="Bookshelf">
+
+<!--        &lt;!&ndash; Action to navigate from Profile to Friends List. &ndash;&gt;-->
+<!--        <action-->
+<!--            android:id="@+id/action_profile_to_friendslist"-->
+<!--            app:destination="@id/friendslist" />-->
+    </fragment>
+
+    <fragment
+        android:id="@+id/contents"
+        android:name="me.kifio.kreader.android.outline.NavigationFragment"
+        android:label="Bookshelf">
+
+
+    </fragment>
+
+</navigation>
