@@ -3,9 +3,11 @@
 .idea
 .project
 .DS_Store
+.kotlin/
 build
 captures
 .externalNativeBuild
 .cxx
 local.properties
 xcuserdata
+androidApp/release/**

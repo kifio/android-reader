@@ -13,8 +13,8 @@ android {
         applicationId = "me.kifio.kreader.android"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "1.0.5"
+        versionCode = 6
+        versionName = "1.0.6"
     }
     buildFeatures {
         compose = true
@@ -43,7 +43,6 @@ android {
     kotlinOptions {
         jvmTarget = "21"
     }
-//    buildToolsVersion = buildToolsVersion1
 }
 
 kotlin {
