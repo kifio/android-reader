@@ -9,7 +9,16 @@
         android:name="me.kifio.kreader.android.bookshelf.BookshelfFragment"
         android:label="Bookshelf">
 
-<!--        &lt;!&ndash; Action to navigate from Profile to Friends List. &ndash;&gt;-->
+        <action
+            android:id="@+id/action_profile_to_friendslist"
+            app:destination="@id/reader" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/reader"
+        android:name="me.kifio.kreader.android.reader.ReaderActivity"
+        android:label="Reader">
+
 <!--        <action-->
 <!--            android:id="@+id/action_profile_to_friendslist"-->
 <!--            app:destination="@id/friendslist" />-->

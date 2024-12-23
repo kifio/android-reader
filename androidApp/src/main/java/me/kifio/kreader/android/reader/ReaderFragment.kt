@@ -8,123 +8,83 @@ package me.kifio.kreader.android.reader
 
 import android.app.Activity
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.widget.SeekBar
-import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
-import androidx.core.view.WindowCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
 import androidx.fragment.app.commitNow
-import androidx.lifecycle.ViewModelProvider
 import dev.chrisbanes.insetter.applyInsetter
 import me.kifio.kreader.android.Application
 import me.kifio.kreader.android.R
-import me.kifio.kreader.android.databinding.ActivityReaderBinding
+import me.kifio.kreader.android.databinding.FragmentReaderBinding
 import me.kifio.kreader.android.outline.OutlineContract
 import me.kifio.kreader.android.outline.OutlineFragment
 import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
 
+class ReaderFragment : Fragment() {
 
-/*
- * An activity to read a publication
- *
- * This class can be used as it is or be inherited from.
- */
-open class ReaderActivity : AppCompatActivity() {
-
-    private val model: ReaderViewModel by viewModels {
+    private val model: ReaderViewModel by activityViewModels() {
         ReaderViewModel.Factory(
-            applicationContext as Application,
-            ReaderActivityContract.parseIntent(this)
+            requireActivity().application as Application,
+            ReaderActivityContract.parseIntent(requireActivity())
         )
     }
 
-    private lateinit var binding: ActivityReaderBinding
-    private lateinit var readerFragment: VisualReaderFragment
-    private var buttonClicked: Boolean = false
+    private lateinit var binding: FragmentReaderBinding
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentReaderBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-//        val arguments = ReaderActivityContract.parseIntent(this)
-//        val app = applicationContext as Application
-
-        /*
-         * [ReaderViewModel.Factory] provides dummy publications if the [ReaderActivity] is restored
-         * after the app process was killed because the [ReaderRepository] is empty.
-         * In that case, finish the activity as soon as possible and go back to the previous one.
-         */
         if (model.publication.readingOrder.isEmpty()) {
             finish()
         }
 
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        val binding = ActivityReaderBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        this.binding = binding
-
-        binding.appBar.applyInsetter {
-            type(statusBars = true) {
-                margin(top = true)
+        arrayOf(binding.contentContainer, binding.outlineContainer).forEach {
+            it.applyInsetter {
+                type(statusBars = true, navigationBars = true) {
+                    margin(bottom = true, top = true)
+                }
             }
         }
 
-        binding.contentContainer.applyInsetter {
-            type(statusBars = true, navigationBars = true) {
-                margin(bottom = true, top = true)
+        arrayOf(binding.bottomAppBar, binding.pagesCount).forEach {
+            it.applyInsetter {
+                type(navigationBars = true) {
+                    margin(bottom = true)
+                }
             }
         }
 
-        binding.bottomAppBar.applyInsetter {
-            type(navigationBars = true) {
-                margin(bottom = true)
+        arrayOf(binding.appBar, binding.navigateUp, binding.contents, binding.bookmarks).forEach {
+            it.applyInsetter {
+                type(statusBars = true) {
+                    margin(top = true)
+                }
             }
         }
 
-        binding.pagesCount.applyInsetter {
-            type(navigationBars = true) {
-                margin(bottom = true)
-            }
-        }
-
-        binding.navigateUp.applyInsetter {
-            type(statusBars = true) {
-                margin(top = true)
-            }
-        }
-
-        binding.contents.applyInsetter {
-            type(statusBars = true) {
-                margin(top = true)
-            }
-        }
-
-        binding.bookmarks.applyInsetter {
-            type(statusBars = true) {
-                margin(top = true)
-            }
-        }
-
-        binding.outlineContainer.applyInsetter {
-            type(statusBars = true, navigationBars = true) {
-                margin(bottom = true, top = true)
-            }
-        }
-
-        val readerFragment =
-            supportFragmentManager.findFragmentByTag(VisualReaderFragment::class.simpleName)
+        val bookFragment =
+            childFragmentManager.findFragmentByTag(VisualReaderFragment::class.simpleName)
                 ?.let { it as VisualReaderFragment }
                 ?: run { createReaderFragment(model.readerInitData) }
-
-        readerFragment?.let { this.readerFragment = it }
 
         model.activityChannel.receive(this) { handleReaderFragmentEvent(it) }
 
@@ -136,7 +96,7 @@ open class ReaderActivity : AppCompatActivity() {
             closeOutlineFragment(locator)
         }
 
-        setSupportActionBar(binding.appBar)
+        activity?.setSupportActionBar(binding.appBar)
 
         title = null
 
@@ -151,11 +111,11 @@ open class ReaderActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(false)
 
         binding.contents.setOnClickListener {
-            handleClick(it) { showOutlineFragment(OutlineFragment.Outline.Contents) }
+            showOutlineFragment(OutlineFragment.Outline.Contents)
         }
 
         binding.bookmarks.setOnClickListener {
-            handleClick(it) { showOutlineFragment(OutlineFragment.Outline.Bookmarks) }
+            showOutlineFragment(OutlineFragment.Outline.Bookmarks)
         }
 
         binding.navigateUp.setOnClickListener {
@@ -210,7 +170,7 @@ open class ReaderActivity : AppCompatActivity() {
     }
 
     override fun finish() {
-        setResult(Activity.RESULT_OK, intent)
+        setResult(Activity.RESULT_OK)
         super.finish()
     }
 
@@ -250,14 +210,6 @@ open class ReaderActivity : AppCompatActivity() {
             supportFragmentManager.beginTransaction().remove(it).commit()
             true
         } ?: false
-    }
-
-    private fun handleClick(view: View, action: (View) -> Unit) {
-        buttonClicked = true
-        view.post {
-            action(view)
-            buttonClicked = false
-        }
     }
 
     private fun toggleUI(navigated: Boolean) {

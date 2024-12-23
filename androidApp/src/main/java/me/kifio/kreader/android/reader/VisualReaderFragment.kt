@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.parcelize.Parcelize
 import me.kifio.kreader.android.R
-import me.kifio.kreader.android.databinding.FragmentReaderBinding
+import me.kifio.kreader.android.databinding.FragmentBookBinding
 import me.kifio.kreader.android.utils.*
 import org.readium.r2.navigator.*
 import org.readium.r2.navigator.util.EdgeTapNavigation
@@ -37,7 +37,7 @@ abstract class VisualReaderFragment : Fragment(), VisualNavigator.Listener, Navi
 
     protected abstract val navigator: Navigator
 
-    private var binding: FragmentReaderBinding by viewLifecycle()
+    private var binding: FragmentBookBinding by viewLifecycle()
 
     private var navigatorFragment: Fragment? = null
 
@@ -46,7 +46,7 @@ abstract class VisualReaderFragment : Fragment(), VisualNavigator.Listener, Navi
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentReaderBinding.inflate(inflater, container, false)
+        binding = FragmentBookBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -97,8 +97,6 @@ abstract class VisualReaderFragment : Fragment(), VisualNavigator.Listener, Navi
         requireActivity().invalidateOptionsMenu()
     }
 
-    // VisualNavigator.Listener
-
     override fun onTap(point: PointF): Boolean {
         model.toggleUIVisibility(edgeTapNavigation.onTap(point, requireView()))
         return true
@@ -111,7 +109,6 @@ abstract class VisualReaderFragment : Fragment(), VisualNavigator.Listener, Navi
     open fun go(locator: Locator, animated: Boolean) {
         navigator.go(locator, animated)
     }
-
 }
 
 /**

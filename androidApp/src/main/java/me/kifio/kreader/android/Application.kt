@@ -34,9 +34,6 @@ class Application : android.app.Application() {
 
     override fun onCreate() {
         super.onCreate()
-        /*
-         * Initializing repositories
-         */
 
         val streamer = Streamer(
             this,
@@ -60,7 +57,3 @@ class Application : android.app.Application() {
 
     }
 }
-
-
-val Context.resolver: ContentResolver
-    get() = applicationContext.contentResolver
