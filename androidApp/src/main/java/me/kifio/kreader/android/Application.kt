@@ -6,8 +6,6 @@
 
 package me.kifio.kreader.android
 
-import android.content.ContentResolver
-import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.MainScope
@@ -17,9 +15,6 @@ import me.kifio.kreader.android.db.BookDatabase
 import me.kifio.kreader.android.reader.ReaderRepository
 import org.readium.r2.lcp.LcpService
 import org.readium.r2.streamer.Streamer
-import org.readium.r2.streamer.server.Server
-import java.io.IOException
-import java.util.*
 
 class Application : android.app.Application() {
 

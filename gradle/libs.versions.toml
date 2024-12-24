@@ -13,9 +13,8 @@ activity-compose = "1.9.3"
 fragment-ktx = "1.8.5"
 material = "1.12.0"
 coroutines-core = "1.9.0"
-navigation = "2.8.4"
+navigation = "2.8.5"
 splash-screen = "1.0.1"
-navigation-fragment = "2.8.5"
 
 [libraries]
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "androidx-compose" }
@@ -42,7 +41,6 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splash-screen" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
-navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigation-fragment" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -51,3 +49,4 @@ kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "google-ksp" }
 parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigation" }

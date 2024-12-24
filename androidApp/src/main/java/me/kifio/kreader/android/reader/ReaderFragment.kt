@@ -6,7 +6,7 @@
 
 package me.kifio.kreader.android.reader
 
-import android.app.Activity
+import android.graphics.PointF
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -15,29 +15,34 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
-import androidx.fragment.app.commitNow
+import androidx.lifecycle.Lifecycle
+import androidx.navigation.fragment.findNavController
 import dev.chrisbanes.insetter.applyInsetter
 import me.kifio.kreader.android.Application
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentReaderBinding
-import me.kifio.kreader.android.outline.OutlineContract
 import me.kifio.kreader.android.outline.OutlineFragment
+import org.readium.r2.navigator.Navigator
+import org.readium.r2.navigator.NavigatorDelegate
+import org.readium.r2.navigator.VisualNavigator
+import org.readium.r2.navigator.util.EdgeTapNavigation
 import org.readium.r2.shared.publication.Locator
-import org.readium.r2.shared.publication.Publication
 
-class ReaderFragment : Fragment() {
+abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorDelegate {
 
-    private val model: ReaderViewModel by activityViewModels() {
-        ReaderViewModel.Factory(
-            requireActivity().application as Application,
-            ReaderActivityContract.parseIntent(requireActivity())
-        )
+    protected abstract val bookId: Long
+
+    protected val model: ReaderViewModel by activityViewModels() {
+        ReaderViewModel.Factory(requireActivity().application as Application, bookId)
     }
+
+    protected abstract val navigator: Navigator
 
     private lateinit var binding: FragmentReaderBinding
 
@@ -50,12 +55,14 @@ class ReaderFragment : Fragment() {
         return binding.root
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        if (model.publication.readingOrder.isEmpty()) {
-            finish()
-        }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        super.onCreate(savedInstanceState)
+        (requireActivity() as AppCompatActivity).setSupportActionBar(binding.appBar)
+        (requireActivity() as AppCompatActivity).title = null
+        (requireActivity() as AppCompatActivity).supportActionBar?.setDisplayHomeAsUpEnabled(false)
+
+        addMenu()
 
         arrayOf(binding.contentContainer, binding.outlineContainer).forEach {
             it.applyInsetter {
@@ -81,35 +88,6 @@ class ReaderFragment : Fragment() {
             }
         }
 
-        val bookFragment =
-            childFragmentManager.findFragmentByTag(VisualReaderFragment::class.simpleName)
-                ?.let { it as VisualReaderFragment }
-                ?: run { createReaderFragment(model.readerInitData) }
-
-        model.activityChannel.receive(this) { handleReaderFragmentEvent(it) }
-
-        supportFragmentManager.setFragmentResultListener(
-            OutlineContract.REQUEST_KEY,
-            this
-        ) { _, result ->
-            val locator = OutlineContract.parseResult(result).destination
-            closeOutlineFragment(locator)
-        }
-
-        activity?.setSupportActionBar(binding.appBar)
-
-        title = null
-
-        addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.menu_reader, menu)
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem) = false
-        })
-
-        supportActionBar?.setDisplayHomeAsUpEnabled(false)
-
         binding.contents.setOnClickListener {
             showOutlineFragment(OutlineFragment.Outline.Contents)
         }
@@ -119,15 +97,22 @@ class ReaderFragment : Fragment() {
         }
 
         binding.navigateUp.setOnClickListener {
-            finishAfterTransition()
+            findNavController().navigateUp()
         }
     }
 
-    override fun onBackPressed() {
-        when (!fragmentBackPressed()) {
-            true -> super.onBackPressed()
-            false -> {}
+    override fun onCreate(savedInstanceState: Bundle?) {
+        if (model.publication.readingOrder.isEmpty()) {
+            findNavController().navigateUp()
         }
+
+        super.onCreate(savedInstanceState)
+
+
+        model.activityChannel.receive(this) { handleReaderFragmentEvent(it) }
+
+
+
     }
 
     private fun onViewModelReady() {
@@ -149,35 +134,31 @@ class ReaderFragment : Fragment() {
         })
     }
 
-    private fun createReaderFragment(readerData: ReaderInitData): VisualReaderFragment? {
-        val readerClass: Class<out Fragment>? = when {
-            readerData.publication.conformsTo(Publication.Profile.EPUB) ->
-                EpubReaderFragment::class.java
-            readerData.publication.conformsTo(Publication.Profile.PDF) ->
-                PdfReaderFragment::class.java
-            else ->
-                // The Activity should stop as soon as possible because readerData are fake.
-                null
-        }
-
-        readerClass?.let { it ->
-            supportFragmentManager.commitNow {
-                add(R.id.content_container, it, Bundle(), VisualReaderFragment::class.simpleName)
+    private fun addMenu() {
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_reader, menu)
             }
-        }
 
-        return supportFragmentManager.findFragmentByTag(VisualReaderFragment::class.simpleName) as VisualReaderFragment?
-    }
-
-    override fun finish() {
-        setResult(Activity.RESULT_OK)
-        super.finish()
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.bookmark -> {
+                        when (model.locations.contains(navigator.currentLocator.value.locations)) {
+                            true -> model.deleteBookmark(navigator.currentLocator.value)
+                            false -> model.insertBookmark(navigator.currentLocator.value)
+                        }
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun handleReaderFragmentEvent(event: ReaderViewModel.ActivityEvent) {
         when (event) {
             ReaderViewModel.ActivityEvent.ViewModelReady -> onViewModelReady()
-            ReaderViewModel.ActivityEvent.FragmentOnBackPressed -> fragmentBackPressed()
+//            ReaderViewModel.ActivityEvent.FragmentOnBackPressed -> fragmentBackPressed()
             is ReaderViewModel.ActivityEvent.ToggleUIVisibilityRequested -> toggleUI(event.navigated)
             is ReaderViewModel.ActivityEvent.UpdateBookmarkRequested -> updateBookmarkIcon(event.isBookmarkedPage)
             is ReaderViewModel.ActivityEvent.UpdateCurrentPage -> updateCurrentPage(
@@ -190,7 +171,7 @@ class ReaderFragment : Fragment() {
 
     private fun showOutlineFragment(outline: OutlineFragment.Outline) {
         binding.outlineContainer.isVisible = true
-        supportFragmentManager.commit {
+        childFragmentManager.commit {
             replace(
                 R.id.outline_container,
                 OutlineFragment.newInstance(outline), OutlineFragment::class.simpleName
@@ -199,22 +180,13 @@ class ReaderFragment : Fragment() {
     }
 
     private fun closeOutlineFragment(locator: Locator) {
-        fragmentBackPressed()
-        readerFragment.go(locator, true)
+        go(locator, true)
     }
 
-    private fun fragmentBackPressed(): Boolean {
-        binding.outlineContainer.isVisible = false
-        return supportFragmentManager.findFragmentByTag(OutlineFragment::class.simpleName)?.let {
-            (it as OutlineFragment).destroy()
-            supportFragmentManager.beginTransaction().remove(it).commit()
-            true
-        } ?: false
-    }
 
     private fun toggleUI(navigated: Boolean) {
         if (navigated) return
-        with(supportActionBar?.isShowing != true) {
+        with((requireActivity() as AppCompatActivity).supportActionBar?.isShowing != true) {
             binding.appBar.isVisible = this
             binding.navigateUp.isVisible = this
             binding.bookmarks.isVisible = this
@@ -239,5 +211,24 @@ class ReaderFragment : Fragment() {
 
     private fun updateProgressBar(progress: Double) {
         binding.bottomBarProgress.progress = (progress * binding.bottomBarProgress.max).toInt()
+    }
+
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        requireActivity().invalidateOptionsMenu()
+    }
+
+    override fun onTap(point: PointF): Boolean {
+        model.toggleUIVisibility(edgeTapNavigation.onTap(point, requireView()))
+        return true
+    }
+
+    private val edgeTapNavigation by lazy {
+        EdgeTapNavigation(navigator = navigator as VisualNavigator)
+    }
+
+    private fun go(locator: Locator, animated: Boolean) {
+        navigator.go(locator, animated)
     }
 }

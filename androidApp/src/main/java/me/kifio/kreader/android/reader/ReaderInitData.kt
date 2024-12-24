@@ -10,13 +10,8 @@ import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
 import java.net.URL
 
-sealed class ReaderInitData {
-    abstract val bookId: Long
-    abstract val publication: Publication
-}
-
-data class VisualReaderInitData(
-    override val bookId: Long,
-    override val publication: Publication,
+data class ReaderInitData(
+    val bookId: Long,
+    val publication: Publication,
     val initialLocation: Locator? = null
-) : ReaderInitData()
+)

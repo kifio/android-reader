@@ -124,9 +124,9 @@ class ReaderViewModel(
         activityChannel.send(ActivityEvent.ToggleUIVisibilityRequested(navigated))
     }
 
-    fun fragmentBackPressed() {
-        activityChannel.send(ActivityEvent.FragmentOnBackPressed)
-    }
+//    fun fragmentBackPressed() {
+//        activityChannel.send(ActivityEvent.FragmentOnBackPressed)
+//    }
 
     fun seekToPage(page: Int) = viewModelScope.launch {
         fragmentChannel.send(FragmentEvent.GoToLocator(_positions[page]))
@@ -155,7 +155,7 @@ class ReaderViewModel(
 
     sealed class ActivityEvent {
         object ViewModelReady : ActivityEvent()
-        object FragmentOnBackPressed : ActivityEvent()
+//        object FragmentOnBackPressed : ActivityEvent()
         data class ToggleUIVisibilityRequested(val navigated: Boolean) : ActivityEvent()
         data class UpdateBookmarkRequested(val isBookmarkedPage: Boolean) : ActivityEvent()
         data class UpdateCurrentPage(val currentPage: Int, val totalCount: Int) : ActivityEvent()
@@ -171,7 +171,7 @@ class ReaderViewModel(
 
     class Factory(
         private val application: Application,
-        private val arguments: ReaderActivityContract.Arguments,
+        private val bookId: Long,
     ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("UNCHECKED_CAST")
@@ -181,10 +181,10 @@ class ReaderViewModel(
                     val readerInitData =
                         try {
                             val readerRepository = application.readerRepository.getCompleted()
-                            readerRepository[arguments.bookId]!!
+                            readerRepository[bookId]
                         } catch (e: Exception) {
                             // Fallbacks on a dummy Publication to avoid crashing the app until the Activity finishes.
-                            dummyReaderInitData(arguments.bookId)
+                            dummyReaderInitData(bookId)
                         }
                     ReaderViewModel(readerInitData, application.bookRepository) as T
                 }
@@ -195,7 +195,7 @@ class ReaderViewModel(
         private fun dummyReaderInitData(bookId: Long): ReaderInitData {
             val metadata = Metadata(identifier = "dummy", localizedTitle = LocalizedString(""))
             val publication = Publication(Manifest(metadata = metadata))
-            return VisualReaderInitData(bookId, publication)
+            return ReaderInitData(bookId, publication)
         }
     }
 }

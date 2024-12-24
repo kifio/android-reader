@@ -24,8 +24,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import me.kifio.kreader.android.reader.ReaderActivityContract
-import org.readium.r2.shared.extensions.tryOrLog
+import androidx.navigation.fragment.findNavController
+import me.kifio.kreader.android.model.Book
+import me.kifio.kreader.android.reader.EpubReaderFragment
+import me.kifio.kreader.android.reader.PdfReaderFragment
+import org.readium.r2.shared.publication.Publication
 
 @Composable
 fun MyApplicationTheme(
@@ -70,16 +73,11 @@ class BookshelfFragment: Fragment() {
             uri?.let { bookShelfVM.saveBookToLocalStorage(requireContext(), it) }
         }
 
-    private val readerLauncher: ActivityResultLauncher<ReaderActivityContract.Arguments> =
-        registerForActivityResult(ReaderActivityContract()) { input ->
-            input?.let { tryOrLog { bookShelfVM.closeBook(requireContext(), input.bookId) } }
-        }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         return ComposeView(requireContext()).apply {
             // Dispose of the Composition when the view's LifecycleOwner
             // is destroyed
@@ -100,6 +98,15 @@ class BookshelfFragment: Fragment() {
     private fun openFilePicker() =
         getContent.launch(arrayOf("application/epub+zip", "application/pdf"))
 
-    private fun openBook(bookId: Long) =
-        readerLauncher.launch(ReaderActivityContract.Arguments(bookId))
+    private fun openBook(book: Book) {
+        bookShelfVM.openBook(requireContext(), book) { publication ->
+            when {
+                publication.conformsTo(Publication.Profile.EPUB) ->
+                    BookshelfFragmentDirections.actionBookshelfToEpub(book.id)
+                publication.conformsTo(Publication.Profile.PDF) ->
+                    BookshelfFragmentDirections.actionBookshelfToPdf(book.id)
+                else -> null
+            }?.let { findNavController().navigate(it) }
+        }
+    }
 }

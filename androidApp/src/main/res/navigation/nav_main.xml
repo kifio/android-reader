@@ -6,22 +6,60 @@
 
     <fragment
         android:id="@+id/bookshelf"
-        android:name="me.kifio.kreader.android.bookshelf.BookshelfFragment"
-        android:label="Bookshelf">
+        android:name="me.kifio.kreader.android.bookshelf.BookshelfFragment">
 
         <action
-            android:id="@+id/action_profile_to_friendslist"
-            app:destination="@id/reader" />
+            android:id="@+id/action_bookshelf_to_epub"
+            app:destination="@id/epub_reader" />
+
+        <action
+            android:id="@+id/action_bookshelf_to_pdf"
+            app:destination="@id/pdf_reader" />
+
     </fragment>
 
     <fragment
-        android:id="@+id/reader"
-        android:name="me.kifio.kreader.android.reader.ReaderActivity"
-        android:label="Reader">
+        android:id="@+id/epub_reader"
+        android:name="me.kifio.kreader.android.reader.EpubReaderFragment">
 
-<!--        <action-->
-<!--            android:id="@+id/action_profile_to_friendslist"-->
-<!--            app:destination="@id/friendslist" />-->
+        <argument
+            android:name="book_id"
+            app:argType="long"/>
+
+        <action
+            android:id="@+id/epub_to_bookmarks"
+            app:destination="@id/epub_reader" />
+
+        <action
+            android:id="@+id/epub_to_contents"
+            app:destination="@id/epub_reader" />
+
     </fragment>
+
+    <fragment
+        android:id="@+id/pdf_reader"
+        android:name="me.kifio.kreader.android.reader.PdfReaderFragment">
+
+        <argument
+            android:name="book_id"
+            app:argType="long"/>
+
+        <action
+            android:id="@+id/pdf_to_bookmarks"
+            app:destination="@id/epub_reader" />
+
+        <action
+            android:id="@+id/pdf_to_contents"
+            app:destination="@id/epub_reader" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/bookmarks"
+        android:name="me.kifio.kreader.android.outline.BookmarksFragment"/>
+
+    <fragment
+        android:id="@+id/contents"
+        android:name="me.kifio.kreader.android.outline.NavigationFragment"/>
 
 </navigation>

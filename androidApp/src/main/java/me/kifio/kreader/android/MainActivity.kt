@@ -3,12 +3,12 @@ package me.kifio.kreader.android
 import android.os.Bundle
 import android.view.ViewTreeObserver
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
-import androidx.fragment.app.FragmentActivity
 import me.kifio.kreader.android.bookshelf.BookshelfViewModel
 
-class MainActivity : FragmentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private val bookShelfVM: BookshelfViewModel by viewModels()
 

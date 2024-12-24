@@ -27,9 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import coil.compose.AsyncImage
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.model.Book
 import me.kifio.kreader.android.utils.extensions.screenWidth
@@ -41,7 +39,7 @@ fun BookshelfView(
     ctx: Context,
     viewModel: BookshelfViewModel,
     openFilePicker: () -> Unit,
-    openBook: (Long) -> Unit
+    openBook: (Book) -> Unit
 ) {
     val scaffoldState = rememberScaffoldState()
     val coroutineScope = rememberCoroutineScope()
@@ -107,7 +105,7 @@ fun Content(
     viewModel: BookshelfViewModel,
     scaffoldState: ScaffoldState,
     coroutineScope: CoroutineScope,
-    openBook: (Long) -> Unit
+    openBook: (Book) -> Unit
 ) {
     val books = viewModel.shelfState
     when (viewModel.errorsState) {
@@ -156,7 +154,7 @@ fun BookshelfContent(
     ctx: Context,
     books: List<Book>,
     viewModel: BookshelfViewModel,
-    openBook: (Long) -> Unit
+    openBook: (Book) -> Unit
 ) {
     LazyColumn {
         itemsIndexed(
@@ -210,7 +208,6 @@ fun BookshelfContent(
                     BookItem(
                         ctx = ctx,
                         book = book,
-                        viewModel = viewModel,
                         openBook = openBook
                     )
                 }
@@ -229,13 +226,12 @@ fun ProgressBar() {
     }
 }
 
-@OptIn(ExperimentalUnitApi::class)
 @Composable
-fun BookItem(ctx: Context, book: Book, viewModel: BookshelfViewModel, openBook: (Long) -> Unit) {
+fun BookItem(ctx: Context, book: Book, openBook: (Book) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = { viewModel.openBook(ctx, book) { openBook(it) } })
+            .clickable(onClick = { openBook(book) })
             .background(MaterialTheme.colors.background)
             .padding(vertical = 8.dp, horizontal = 8.dp),
         horizontalArrangement = Arrangement.Start,

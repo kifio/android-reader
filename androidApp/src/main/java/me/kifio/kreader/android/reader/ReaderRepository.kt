@@ -39,21 +39,17 @@ class ReaderRepository(
     private val repository: MutableMap<Long, ReaderInitData> =
         mutableMapOf()
 
-    operator fun get(bookId: Long): ReaderInitData? =
-        repository[bookId]
-
-    suspend fun open(bookId: Long, activity: Context): Try<Unit, Exception> {
-        return try {
-            openThrowing(bookId, activity)
-            Try.success(Unit)
-        } catch (e: Exception) {
-            Try.failure(e)
+    operator fun get(bookId: Long): ReaderInitData {
+        if (bookId in repository.keys) {
+            return repository[bookId]!!
+        } else {
+            throw IllegalStateException("Книга не была открыта. Объект Publication не был создан.")
         }
     }
 
-    private suspend fun openThrowing(bookId: Long, context: Context) {
+    suspend fun open(bookId: Long, context: Context): Publication {
         if (bookId in repository.keys) {
-            return
+            return get(bookId).publication
         }
 
         val book = bookRepository.get(bookId)
@@ -76,21 +72,23 @@ class ReaderRepository(
 
         val readerInitData = openVisual(bookId, publication, initialLocator)
         repository[bookId] = readerInitData
+        return publication
     }
 
     private fun openVisual(
         bookId: Long,
         publication: Publication,
         initialLocator: Locator?
-    ): VisualReaderInitData {
-        return VisualReaderInitData(bookId, publication, initialLocator)
+    ): ReaderInitData {
+        return ReaderInitData(bookId, publication, initialLocator)
     }
 
     fun close(bookId: Long) {
         when (val initData = repository.remove(bookId)) {
-            is VisualReaderInitData -> {
+            is ReaderInitData -> {
                 initData.publication.close()
             }
+
             null -> {
                 // Do nothing
             }

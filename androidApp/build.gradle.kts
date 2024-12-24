@@ -1,9 +1,12 @@
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin)
     alias(libs.plugins.ksp)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.parcelize)
+    alias(libs.plugins.navigation.safeargs)
 }
 
 android {
@@ -72,6 +75,6 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.core.splashscreen)
-    implementation(libs.navigation.fragment)
+    implementation(libs.androidx.navigation.fragment)
     ksp(libs.androidx.room.compiler)
 }

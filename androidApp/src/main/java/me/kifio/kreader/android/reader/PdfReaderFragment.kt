@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.commitNow
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.navArgs
 import me.kifio.kreader.android.R
 import org.readium.r2.navigator.Navigator
 import org.readium.r2.navigator.pdf.PdfEngineProvider
@@ -21,19 +22,18 @@ import org.readium.r2.shared.fetcher.Resource
 import org.readium.r2.shared.publication.Link
 import org.readium.r2.shared.publication.Publication
 
-class PdfReaderFragment : VisualReaderFragment(), PdfNavigatorFragment.Listener {
+class PdfReaderFragment : ReaderFragment(), PdfNavigatorFragment.Listener {
 
-    override lateinit var model: ReaderViewModel
+    private val args: PdfReaderFragmentArgs by navArgs()
+
+    override var bookId: Long = args.bookId
+
     override lateinit var navigator: Navigator
     private lateinit var publication: Publication
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        ViewModelProvider(requireActivity())[ReaderViewModel::class.java].let {
-            model = it
-            publication = it.publication
-        }
 
-        val readerData = model.readerInitData as VisualReaderInitData
+        val readerData = model.readerInitData as ReaderInitData
 
 //        childFragmentManager.fragmentFactory =
 //            PdfNavigatorFragment.createFactory(publication, readerData.initialLocation, )

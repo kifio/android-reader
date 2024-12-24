@@ -48,7 +48,7 @@ class OutlineFragment : Fragment() {
             this,
             object: OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    model.fragmentBackPressed()
+//                    model.fragmentBackPressed()
                 }
             }
         )
@@ -70,7 +70,7 @@ class OutlineFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.navigateUp.setOnClickListener { model.fragmentBackPressed() }
+//        binding.navigateUp.setOnClickListener { model.fragmentBackPressed() }
         binding.title.setText(outline.title)
         val fragment = createFragment()
         childFragmentManager.beginTransaction()

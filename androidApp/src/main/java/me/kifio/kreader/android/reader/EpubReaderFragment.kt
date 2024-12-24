@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.commitNow
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.navArgs
 import me.kifio.kreader.android.R
 import org.readium.r2.navigator.ExperimentalDecorator
 import org.readium.r2.navigator.Navigator
@@ -22,27 +23,23 @@ import org.readium.r2.navigator.epub.css.RsProperties
 import org.readium.r2.shared.publication.Publication
 
 @OptIn(ExperimentalDecorator::class)
-class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listener {
+class EpubReaderFragment() : ReaderFragment(), EpubNavigatorFragment.Listener {
 
-    override lateinit var model: ReaderViewModel
+    private val args: EpubReaderFragmentArgs by navArgs()
+
+    override val bookId by lazy {
+        args.bookId
+    }
+
     override lateinit var navigator: Navigator
-
-    private lateinit var publication: Publication
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        ViewModelProvider(requireActivity())[ReaderViewModel::class.java].let {
-            model = it
-            publication = it.publication
-        }
-
-        val readerData = model.readerInitData as VisualReaderInitData
-
         childFragmentManager.fragmentFactory =
             EpubNavigatorFragment.createFactory(
-                publication = publication,
-                initialLocator = readerData.initialLocation,
+                publication = model.readerInitData.publication,
+                initialLocator = model.readerInitData.initialLocation,
                 listener = this,
                 config = EpubNavigatorFragment.Configuration(
                     readiumCssRsProperties = RsProperties(
@@ -64,7 +61,7 @@ class EpubReaderFragment : VisualReaderFragment(), EpubNavigatorFragment.Listene
         if (savedInstanceState == null) {
             childFragmentManager.commitNow {
                 add(
-                    R.id.fragment_reader_container,
+                    R.id.content_container,
                     EpubNavigatorFragment::class.java,
                     Bundle(),
                     navigatorFragmentTag
