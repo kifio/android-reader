@@ -20,7 +20,6 @@ import org.readium.r2.navigator.Navigator
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
 import org.readium.r2.navigator.epub.css.Color
 import org.readium.r2.navigator.epub.css.RsProperties
-import org.readium.r2.shared.publication.Publication
 
 @OptIn(ExperimentalDecorator::class)
 class EpubReaderFragment() : ReaderFragment(), EpubNavigatorFragment.Listener {
@@ -48,14 +47,7 @@ class EpubReaderFragment() : ReaderFragment(), EpubNavigatorFragment.Listener {
                     )
                 )
             )
-    }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        val view = super.onCreateView(inflater, container, savedInstanceState)
         val navigatorFragmentTag = getString(org.readium.r2.navigator.R.string.epub_navigator_tag)
 
         if (savedInstanceState == null) {
@@ -68,8 +60,7 @@ class EpubReaderFragment() : ReaderFragment(), EpubNavigatorFragment.Listener {
                 )
             }
         }
-        navigator = childFragmentManager.findFragmentByTag(navigatorFragmentTag) as Navigator
 
-        return view
+        navigator = childFragmentManager.findFragmentByTag(navigatorFragmentTag) as Navigator
     }
 }

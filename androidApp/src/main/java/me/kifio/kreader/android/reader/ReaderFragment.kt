@@ -1,9 +1,3 @@
-/*
- * Copyright 2021 Readium Foundation. All rights reserved.
- * Use of this source code is governed by the BSD-style license
- * available in the top-level LICENSE file of the project.
- */
-
 package me.kifio.kreader.android.reader
 
 import android.graphics.PointF
@@ -21,9 +15,13 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import me.kifio.kreader.android.Application
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentReaderBinding
@@ -38,7 +36,7 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
 
     protected abstract val bookId: Long
 
-    protected val model: ReaderViewModel by activityViewModels() {
+    protected val model: ReaderViewModel by viewModels() {
         ReaderViewModel.Factory(requireActivity().application as Application, bookId)
     }
 
@@ -102,17 +100,29 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
         if (model.publication.readingOrder.isEmpty()) {
             findNavController().navigateUp()
         }
 
-        super.onCreate(savedInstanceState)
-
-
         model.activityChannel.receive(this) { handleReaderFragmentEvent(it) }
 
+        model.fragmentChannel.receive(this) { event ->
+            when (event) {
+                is ReaderViewModel.FragmentEvent.GoToLocator -> {
+                    go(event.locator, true)
+                }
+                else -> {
+                    model.updateBookmarkIcon(event is ReaderViewModel.FragmentEvent.BookmarkSuccessfullyAdded)
+                }
+            }
+        }
+    }
 
-
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModelStore.clear()
     }
 
     private fun onViewModelReady() {
@@ -132,6 +142,13 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
                 model.seekToPage(p0.progress)
             }
         })
+
+        navigator.currentLocator
+            .onEach {
+                model.updateProgression(it)
+                model.updateBookmarkIcon(model.locations.contains(it.locations))
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun addMenu() {
