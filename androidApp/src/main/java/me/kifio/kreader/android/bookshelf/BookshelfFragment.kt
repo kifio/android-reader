@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.ActivityResultLauncher
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,10 +24,14 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
+import me.kifio.kreader.android.Application
+import me.kifio.kreader.android.R
 import me.kifio.kreader.android.model.Book
+import me.kifio.kreader.android.reader.ReaderViewModel
 import org.readium.r2.shared.publication.Publication
 
 @Composable
@@ -67,6 +71,7 @@ fun MyApplicationTheme(
 class BookshelfFragment: Fragment() {
 
     private val bookShelfVM: BookshelfViewModel by activityViewModels()
+    private val readerVM: ReaderViewModel by activityViewModels { ReaderViewModel.Factory(requireActivity().application as Application) }
 
     private val getContent =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -100,15 +105,20 @@ class BookshelfFragment: Fragment() {
 
     private fun openBook(book: Book) {
         viewLifecycleOwner.lifecycleScope.launch {
-            bookShelfVM.openPublication(requireContext(), book.id)?.let { publication ->
-                when {
-                    publication.conformsTo(Publication.Profile.EPUB) ->
-                        BookshelfFragmentDirections.actionBookshelfToEpub()
-                    publication.conformsTo(Publication.Profile.PDF) ->
-                        BookshelfFragmentDirections.actionBookshelfToPdf()
-                    else -> null
-                }?.let { findNavController().navigate(it) }
+            val publication = readerVM.openPublication(book.id)
+
+            if (publication == null) {
+                Toast.makeText(requireContext(), R.string.publication_opening_error, Toast.LENGTH_SHORT).show()
+                return@launch
             }
+
+            when {
+                publication.conformsTo(Publication.Profile.EPUB) ->
+                    BookshelfFragmentDirections.actionBookshelfToEpub()
+                publication.conformsTo(Publication.Profile.PDF) ->
+                    BookshelfFragmentDirections.actionBookshelfToPdf()
+                else -> null
+            }?.let { findNavController().navigate(it) }
         }
     }
 }

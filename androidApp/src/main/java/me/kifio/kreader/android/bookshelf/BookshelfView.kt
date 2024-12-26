@@ -119,11 +119,6 @@ fun Content(
             stringResource(id = R.string.file_not_created_error),
             Toast.LENGTH_SHORT
         ).show()
-        BookShelfError.PublicationOpeningError -> Toast.makeText(
-            ctx,
-            stringResource(id = R.string.publication_opening_error),
-            Toast.LENGTH_SHORT
-        ).show()
         null -> {}
     }
     viewModel.clearError()

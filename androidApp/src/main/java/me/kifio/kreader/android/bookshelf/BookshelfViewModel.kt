@@ -8,13 +8,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.kifio.kreader.android.Application
 import me.kifio.kreader.android.model.Book
-import me.kifio.kreader.android.reader.ReaderRepository
 import me.kifio.kreader.android.utils.extensions.copyToLocalFile
 import me.kifio.kreader.android.utils.extensions.screenHeight
 import me.kifio.kreader.android.utils.extensions.screenWidth
@@ -31,10 +31,12 @@ import kotlin.math.roundToInt
 sealed class BookShelfError {
     data object BookAlreadyExist : BookShelfError()
     data object FileNotCreatedError : BookShelfError()
-    data object PublicationOpeningError : BookShelfError()
 }
 
-class BookshelfViewModel : ViewModel() {
+class BookshelfViewModel(
+    private val booksRepository: BookRepository,
+    private val streamer: Streamer
+) : ViewModel() {
 
     var shelfState by mutableStateOf<List<Book>?>(null)
         private set
@@ -42,23 +44,17 @@ class BookshelfViewModel : ViewModel() {
     var errorsState by mutableStateOf<BookShelfError?>(null)
         private set
 
-    private var booksRepository: BookRepository? = null
-    private var streamer: Streamer? = null
 
-    fun setup(ctx: Context) {
+    fun setup() {
         viewModelScope.launch(context = Dispatchers.IO) {
-            booksRepository = (ctx.applicationContext as Application).bookRepository
-            streamer = Streamer(ctx, contentProtections = emptyList())
             loadBooks()
         }
     }
 
-    private fun loadBooks() {
-        viewModelScope.launch(context = Dispatchers.IO) {
-            val books = booksRepository?.books()
-            withContext(context = Dispatchers.Main) {
-                shelfState = books
-            }
+    private suspend fun loadBooks() {
+        val books = booksRepository.books()
+        withContext(context = Dispatchers.Main) {
+            shelfState = books
         }
     }
 
@@ -84,8 +80,8 @@ class BookshelfViewModel : ViewModel() {
         val booksRepo = this.booksRepository ?: throw java.lang.IllegalStateException()
         val libraryAsset = FileAsset(localFile, localFile.mediaType())
 
-        streamer?.open(libraryAsset, allowUserInteraction = false)
-            ?.onSuccess { publication ->
+        streamer.open(libraryAsset, allowUserInteraction = false)
+            .onSuccess { publication ->
 
                 val alreadyExist = booksRepo.books().any {
                     it.identifier == publication.metadata.identifier
@@ -103,7 +99,7 @@ class BookshelfViewModel : ViewModel() {
                     storeCoverImage(ctx, id, publication)
                 }
             }
-            ?.onFailure { e ->
+            .onFailure { e ->
                 e.printStackTrace()
                 localFile.delete()
             }
@@ -141,26 +137,13 @@ class BookshelfViewModel : ViewModel() {
             }
         }
 
-
-    suspend fun openPublication(ctx: Context, bookId: Long): Publication? {
-        val app = ctx.applicationContext as Application
-        val readerRepository = app.readerRepository
-
-        try {
-            return readerRepository.open(bookId, ctx)
-        } catch (e: Exception) {
-            if (e is ReaderRepository.CancellationException)
-                return null
-
-            withContext(Dispatchers.Main) {
-                errorsState = BookShelfError.PublicationOpeningError
-            }
-
-            return null
-        }
-    }
-
     fun clearError() {
         errorsState = null
+    }
+
+    class Factory(private val application: Application) : ViewModelProvider.NewInstanceFactory() {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return BookshelfViewModel(application.bookRepository, application.streamer) as T
+        }
     }
 }

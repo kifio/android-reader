@@ -1,9 +1,3 @@
-/*
- * Copyright 2021 Readium Foundation. All rights reserved.
- * Use of this source code is governed by the BSD-style license
- * available in the top-level LICENSE file of the project.
- */
-
 package me.kifio.kreader.android.outline
 
 import android.os.Bundle
@@ -39,9 +33,6 @@ class NavigationFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        ViewModelProvider(requireActivity())[ReaderViewModel::class.java].let {
-            publication = it.publication
-        }
 
         links = requireNotNull(requireArguments().getParcelableArrayList(LINKS_ARG))
     }

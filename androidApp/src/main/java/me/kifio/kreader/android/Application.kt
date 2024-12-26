@@ -6,13 +6,8 @@
 
 package me.kifio.kreader.android
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.async
 import me.kifio.kreader.android.bookshelf.BookRepository
 import me.kifio.kreader.android.db.BookDatabase
-import me.kifio.kreader.android.reader.ReaderRepository
 import org.readium.r2.lcp.LcpService
 import org.readium.r2.streamer.Streamer
 
@@ -21,16 +16,13 @@ class Application : android.app.Application() {
     lateinit var bookRepository: BookRepository
         private set
 
-    lateinit var readerRepository: ReaderRepository
+    lateinit var streamer: Streamer
         private set
-
-    private val coroutineScope: CoroutineScope =
-        MainScope()
 
     override fun onCreate() {
         super.onCreate()
 
-        val streamer = Streamer(
+        streamer = Streamer(
             this,
             contentProtections = listOfNotNull(
                 LcpService(this)?.contentProtection()
@@ -40,8 +32,5 @@ class Application : android.app.Application() {
         bookRepository =
             BookDatabase.getDatabase(this).booksDao()
                 .let {  BookRepository(it) }
-
-        readerRepository = ReaderRepository(streamer, bookRepository)
-
     }
 }

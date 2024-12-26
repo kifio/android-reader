@@ -10,7 +10,7 @@ import me.kifio.kreader.android.bookshelf.BookshelfViewModel
 
 class MainActivity : AppCompatActivity() {
 
-    private val bookShelfVM: BookshelfViewModel by viewModels()
+    private val bookShelfVM: BookshelfViewModel by viewModels { BookshelfViewModel.Factory(application as Application) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +34,6 @@ class MainActivity : AppCompatActivity() {
             }
         )
 
-        bookShelfVM.setup(this)
+        bookShelfVM.setup()
     }
 }

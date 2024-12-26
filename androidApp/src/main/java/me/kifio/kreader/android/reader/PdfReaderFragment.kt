@@ -29,7 +29,7 @@ class PdfReaderFragment : ReaderFragment(), PdfNavigatorFragment.Listener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
-        val readerData = model.readerInitData as ReaderInitData
+//        val readerData = model.readerInitData as ReaderInitData
 
 //        childFragmentManager.fragmentFactory =
 //            PdfNavigatorFragment.createFactory(publication, readerData.initialLocation, )

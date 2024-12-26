@@ -15,14 +15,12 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import me.kifio.kreader.android.Application
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentReaderBinding
 import me.kifio.kreader.android.outline.OutlineFragment
@@ -31,12 +29,11 @@ import org.readium.r2.navigator.NavigatorDelegate
 import org.readium.r2.navigator.VisualNavigator
 import org.readium.r2.navigator.util.EdgeTapNavigation
 import org.readium.r2.shared.publication.Locator
+import org.readium.r2.shared.publication.Publication
 
 abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorDelegate {
 
-    protected val model: ReaderViewModel by viewModels() {
-        ReaderViewModel.Factory(requireActivity().application as Application)
-    }
+    protected val model: ReaderViewModel by activityViewModels()
 
     protected abstract val navigator: Navigator
 
@@ -95,6 +92,8 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
         binding.navigateUp.setOnClickListener {
             findNavController().navigateUp()
         }
+
+        model.openReader()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -102,8 +101,8 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
 
         model.fragmentChannel.receive(this) { event ->
             when (event) {
-                is ReaderViewModel.FragmentEvent.ViewModelReady -> {
-                    onViewModelReady()
+                is ReaderViewModel.FragmentEvent.PublicationReady -> {
+                    onPublicationReady(event.publication, event.initialLocator)
                 }
                 is ReaderViewModel.FragmentEvent.GoToLocator -> {
                     go(event.locator, true)
@@ -124,8 +123,7 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
 
     override fun onDestroy() {
         super.onDestroy()
-        model.closePublication(requireContext())
-        viewModelStore.clear()
+        model.closePublication()
     }
 
     override fun onDestroyView() {
@@ -134,8 +132,8 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
 //        viewModelStore.clear()
     }
 
-    protected open fun onViewModelReady() {
-        if (model.publication.readingOrder.isEmpty()) {
+    protected open fun onPublicationReady(publication: Publication, initialLocator: Locator?) {
+        if (publication.readingOrder.isEmpty()) {
             findNavController().navigateUp()
         }
 

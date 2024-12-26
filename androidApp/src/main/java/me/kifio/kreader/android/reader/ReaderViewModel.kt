@@ -6,53 +6,49 @@
 
 package me.kifio.kreader.android.reader
 
-import android.content.Context
-import android.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
-import androidx.paging.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import me.kifio.kreader.android.Application
 import me.kifio.kreader.android.bookshelf.BookRepository
 import me.kifio.kreader.android.model.Bookmark
 import me.kifio.kreader.android.utils.EventChannel
 import org.json.JSONObject
-import org.readium.r2.navigator.Decoration
-import org.readium.r2.navigator.ExperimentalDecorator
-import org.readium.r2.shared.publication.*
+import org.readium.r2.shared.publication.Locator
+import org.readium.r2.shared.publication.Publication
+import org.readium.r2.shared.publication.asset.FileAsset
+import org.readium.r2.shared.publication.services.isRestricted
 import org.readium.r2.shared.publication.services.positions
+import org.readium.r2.shared.publication.services.protectionError
+import org.readium.r2.streamer.Streamer
+import java.io.File
 
-@OptIn(
-    ExperimentalCoroutinesApi::class,
-)
+
 class ReaderViewModel(
-    val readerInitData: ReaderInitData,
     private val bookRepository: BookRepository,
+    private val streamer: Streamer
 ) : ViewModel() {
 
-    val publication: Publication =
-        readerInitData.publication
+    private var _publication: Publication? = null
+    private var _initialLocator: Locator? = null
+    private var _bookId: Long? = null
+    private var _pagesCount: Int = 0
+    private var _bookmarks: MutableList<Bookmark> = mutableListOf()
+    private var _bookmarksLocations: MutableList<Locator.Locations> = mutableListOf()
+
+    private val publication: Publication
+        get() = _publication ?: throw IllegalStateException()
+
+    private val bookId: Long
+        get() = _bookId ?: throw IllegalStateException()
 
     val pagesCount: Int
-        get() = _positions.size
-
-    val bookId: Long =
-        readerInitData.bookId
+        get() = _pagesCount
 
     val fragmentChannel: EventChannel<FragmentEvent> =
         EventChannel(Channel(Channel.BUFFERED), viewModelScope)
-
-    private var _positions: MutableList<Locator> = mutableListOf()
-    private var _bookmarks: MutableList<Bookmark> = mutableListOf()
-    private var _bookmarksLocations: MutableList<Locator.Locations> = mutableListOf()
 
     val bookmarks: List<Bookmark>
         get() = _bookmarks
@@ -60,17 +56,51 @@ class ReaderViewModel(
     val locations: List<Locator.Locations>
         get() = _bookmarksLocations
 
-    init {
-        viewModelScope.launch {
+
+    suspend fun openPublication(bookId: Long): Publication? {
+        try {
             _bookmarks.addAll(bookRepository.bookmarksForBook(bookId = bookId))
             _bookmarksLocations.addAll(bookmarks.map { it.locations() })
-            _positions.addAll(publication.positions())
-            fragmentChannel.send(FragmentEvent.ViewModelReady)
+            _bookId = bookId
+            openPublication()
+            return _publication
+        } catch (e: Exception) {
+            e.printStackTrace()
+            closePublication()
+            return null
         }
     }
 
+    @Throws(Exception::class)
+    private suspend fun openPublication() {
+        val book = bookRepository.get(bookId)
+            ?: throw IllegalStateException("Cannot find book in database.")
+
+        val file = File(book.href)
+        require(file.exists())
+        val asset = FileAsset(file)
+
+        val publication = streamer.open(asset, allowUserInteraction = true)
+            .getOrThrow()
+
+        if (publication.isRestricted) {
+            throw publication.protectionError
+                ?: IllegalStateException()
+        }
+
+        _publication = publication
+        _initialLocator = book.progression?.let { Locator.fromJSON(JSONObject(it)) }
+        _pagesCount = publication.positions().size
+    }
+
+    fun openReader() {
+        fragmentChannel.send(
+            FragmentEvent.PublicationReady(publication, _initialLocator)
+        )
+    }
+
     fun updateProgression(locator: Locator) = viewModelScope.launch {
-        val asdf = bookRepository.saveProgression(locator, bookId)
+        bookRepository.saveProgression(locator, bookId)
 
         var totalProgress: Double? = locator.locations.totalProgression
 
@@ -116,19 +146,29 @@ class ReaderViewModel(
     }
 
     fun seekToPage(page: Int) = viewModelScope.launch {
-        fragmentChannel.send(FragmentEvent.GoToLocator(_positions[page]))
+        fragmentChannel.send(FragmentEvent.GoToLocator(publication.positions()[page]))
     }
 
-    fun closePublication(ctx: Context) {
-        val readerRepository = (ctx.applicationContext as Application).readerRepository
-        readerRepository.close()
+    fun closePublication() {
+        _bookmarks.clear()
+        _bookmarksLocations.clear()
+        _bookId = bookId
+        _initialLocator = null
+        publication.close()
+        _publication = null
     }
 
     sealed class FragmentEvent {
-        object ViewModelReady : FragmentEvent()
         object BookmarkSuccessfullyAdded : FragmentEvent()
         object BookmarkSuccessfullyRemoved : FragmentEvent()
+
+        data class PublicationReady(
+            val publication: Publication,
+            val initialLocator: Locator?
+        ) : FragmentEvent()
+
         data class GoToLocator(val locator: Locator) : FragmentEvent()
+
         data class UpdateCurrentPage(
             val currentPage: Int,
             val totalCount: Int,
@@ -137,22 +177,8 @@ class ReaderViewModel(
     }
 
     class Factory(private val application: Application) : ViewModelProvider.NewInstanceFactory() {
-
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            when {
-                modelClass.isAssignableFrom(ReaderViewModel::class.java) -> {
-                    val readerInitData = application.readerRepository.get()
-                    ReaderViewModel(readerInitData, application.bookRepository) as T
-                }
-                else ->
-                    throw IllegalStateException("Cannot create ViewModel for class ${modelClass.simpleName}.")
-            }
-
-        private fun dummyReaderInitData(bookId: Long): ReaderInitData {
-            val metadata = Metadata(identifier = "dummy", localizedTitle = LocalizedString(""))
-            val publication = Publication(Manifest(metadata = metadata))
-            return ReaderInitData(bookId, publication)
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return ReaderViewModel(application.bookRepository, application.streamer) as T
         }
     }
 }

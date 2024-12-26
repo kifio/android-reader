@@ -1,9 +1,3 @@
-/*
- * Copyright 2021 Readium Foundation. All rights reserved.
- * Use of this source code is governed by the BSD-style license
- * available in the top-level LICENSE file of the project.
- */
-
 package me.kifio.kreader.android.outline
 
 import android.animation.ValueAnimator
@@ -20,6 +14,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.*
 import com.google.android.material.divider.MaterialDividerItemDecoration
@@ -44,18 +39,9 @@ private fun Float.toPx(context: Context): Int =
 class BookmarksFragment : Fragment() {
 
     lateinit var publication: Publication
-    lateinit var viewModel: ReaderViewModel
+    private val viewModel: ReaderViewModel by viewModels()
     private lateinit var bookmarkAdapter: BookmarkAdapter
     private var binding: FragmentListviewBinding by viewLifecycle()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        ViewModelProvider(requireActivity())[ReaderViewModel::class.java].let {
-            publication = it.publication
-            viewModel = it
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,

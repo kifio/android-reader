@@ -9,24 +9,25 @@ package me.kifio.kreader.android.reader
 import android.os.Bundle
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.commitNow
-import androidx.navigation.fragment.navArgs
 import me.kifio.kreader.android.R
 import org.readium.r2.navigator.ExperimentalDecorator
 import org.readium.r2.navigator.Navigator
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
 import org.readium.r2.navigator.epub.css.Color
 import org.readium.r2.navigator.epub.css.RsProperties
+import org.readium.r2.shared.publication.Locator
+import org.readium.r2.shared.publication.Publication
 
 @OptIn(ExperimentalDecorator::class)
-class EpubReaderFragment() : ReaderFragment(), EpubNavigatorFragment.Listener {
+class EpubReaderFragment : ReaderFragment(), EpubNavigatorFragment.Listener {
 
     override lateinit var navigator: Navigator
 
-    override fun onViewModelReady() {
+    override fun onPublicationReady(publication: Publication, initialLocator: Locator?) {
         childFragmentManager.fragmentFactory =
             EpubNavigatorFragment.createFactory(
-                publication = model.readerInitData.publication,
-                initialLocator = model.readerInitData.initialLocation,
+                publication = publication,
+                initialLocator = initialLocator,
                 listener = this,
                 config = EpubNavigatorFragment.Configuration(
                     readiumCssRsProperties = RsProperties(
@@ -49,6 +50,6 @@ class EpubReaderFragment() : ReaderFragment(), EpubNavigatorFragment.Listener {
 
         navigator = childFragmentManager.findFragmentByTag(navigatorFragmentTag) as Navigator
 
-        super.onViewModelReady()
+        super.onPublicationReady(publication, initialLocator)
     }
 }

@@ -1,9 +1,3 @@
-/*
- * Copyright 2021 Readium Foundation. All rights reserved.
- * Use of this source code is governed by the BSD-style license
- * available in the top-level LICENSE file of the project.
- */
-
 package me.kifio.kreader.android.outline
 
 import android.os.Build
@@ -17,6 +11,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.parcelize.Parcelize
 import me.kifio.kreader.android.R
@@ -30,14 +25,14 @@ class OutlineFragment : Fragment() {
 
     private lateinit var publication: Publication
     private lateinit var outline: Outline
-    private lateinit var model: ReaderViewModel
+
+    private val model: ReaderViewModel by viewModels()
     private var binding: FragmentOutlineBinding by viewLifecycle()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        model = ViewModelProvider(requireActivity())[ReaderViewModel::class.java]
-        publication = model.publication
+//        publication = model.publication
 
         outline = when (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
              true -> arguments?.getSerializable(OUTLINE_CONTENT_ARG, Outline::class.java)
