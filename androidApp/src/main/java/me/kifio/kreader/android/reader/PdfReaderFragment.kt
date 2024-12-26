@@ -24,10 +24,6 @@ import org.readium.r2.shared.publication.Publication
 
 class PdfReaderFragment : ReaderFragment(), PdfNavigatorFragment.Listener {
 
-    private val args: PdfReaderFragmentArgs by navArgs()
-
-    override var bookId: Long = args.bookId
-
     override lateinit var navigator: Navigator
     private lateinit var publication: Publication
 

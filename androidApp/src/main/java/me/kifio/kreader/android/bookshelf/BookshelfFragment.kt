@@ -24,10 +24,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
 import me.kifio.kreader.android.model.Book
-import me.kifio.kreader.android.reader.EpubReaderFragment
-import me.kifio.kreader.android.reader.PdfReaderFragment
 import org.readium.r2.shared.publication.Publication
 
 @Composable
@@ -99,14 +99,16 @@ class BookshelfFragment: Fragment() {
         getContent.launch(arrayOf("application/epub+zip", "application/pdf"))
 
     private fun openBook(book: Book) {
-        bookShelfVM.openBook(requireContext(), book) { publication ->
-            when {
-                publication.conformsTo(Publication.Profile.EPUB) ->
-                    BookshelfFragmentDirections.actionBookshelfToEpub(book.id)
-                publication.conformsTo(Publication.Profile.PDF) ->
-                    BookshelfFragmentDirections.actionBookshelfToPdf(book.id)
-                else -> null
-            }?.let { findNavController().navigate(it) }
+        viewLifecycleOwner.lifecycleScope.launch {
+            bookShelfVM.openPublication(requireContext(), book.id)?.let { publication ->
+                when {
+                    publication.conformsTo(Publication.Profile.EPUB) ->
+                        BookshelfFragmentDirections.actionBookshelfToEpub()
+                    publication.conformsTo(Publication.Profile.PDF) ->
+                        BookshelfFragmentDirections.actionBookshelfToPdf()
+                    else -> null
+                }?.let { findNavController().navigate(it) }
+            }
         }
     }
 }

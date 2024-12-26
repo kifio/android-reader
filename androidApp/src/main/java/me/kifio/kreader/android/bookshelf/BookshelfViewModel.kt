@@ -141,21 +141,10 @@ class BookshelfViewModel : ViewModel() {
             }
         }
 
-    fun openBook(
-        ctx: Context,
-        book: Book,
-        onBookOpened: (Publication) -> Unit,
-    ) = viewModelScope.launch(Dispatchers.IO) {
-        openPublication(ctx, book.id)?.let { publication ->
-            withContext(Dispatchers.Main) {
-                onBookOpened(publication)
-            }
-        }
-    }
 
-    private suspend fun openPublication(ctx: Context, bookId: Long): Publication? {
+    suspend fun openPublication(ctx: Context, bookId: Long): Publication? {
         val app = ctx.applicationContext as Application
-        val readerRepository = app.readerRepository.await()
+        val readerRepository = app.readerRepository
 
         try {
             return readerRepository.open(bookId, ctx)
@@ -169,11 +158,6 @@ class BookshelfViewModel : ViewModel() {
 
             return null
         }
-    }
-
-    fun closeBook(ctx: Context, bookId: Long) = viewModelScope.launch {
-        val readerRepository = (ctx.applicationContext as Application).readerRepository.await()
-        readerRepository.close(bookId)
     }
 
     fun clearError() {

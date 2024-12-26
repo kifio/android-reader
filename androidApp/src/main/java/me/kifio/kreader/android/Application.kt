@@ -21,7 +21,7 @@ class Application : android.app.Application() {
     lateinit var bookRepository: BookRepository
         private set
 
-    lateinit var readerRepository: Deferred<ReaderRepository>
+    lateinit var readerRepository: ReaderRepository
         private set
 
     private val coroutineScope: CoroutineScope =
@@ -41,14 +41,7 @@ class Application : android.app.Application() {
             BookDatabase.getDatabase(this).booksDao()
                 .let {  BookRepository(it) }
 
-        readerRepository =
-            coroutineScope.async {
-                ReaderRepository(
-                    this@Application,
-                    streamer,
-                    bookRepository
-                )
-            }
+        readerRepository = ReaderRepository(streamer, bookRepository)
 
     }
 }

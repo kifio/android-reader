@@ -34,10 +34,8 @@ import org.readium.r2.shared.publication.Locator
 
 abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorDelegate {
 
-    protected abstract val bookId: Long
-
     protected val model: ReaderViewModel by viewModels() {
-        ReaderViewModel.Factory(requireActivity().application as Application, bookId)
+        ReaderViewModel.Factory(requireActivity().application as Application)
     }
 
     protected abstract val navigator: Navigator
@@ -102,19 +100,23 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (model.publication.readingOrder.isEmpty()) {
-            findNavController().navigateUp()
-        }
-
-        model.activityChannel.receive(this) { handleReaderFragmentEvent(it) }
-
         model.fragmentChannel.receive(this) { event ->
             when (event) {
+                is ReaderViewModel.FragmentEvent.ViewModelReady -> {
+                    onViewModelReady()
+                }
                 is ReaderViewModel.FragmentEvent.GoToLocator -> {
                     go(event.locator, true)
                 }
-                else -> {
-                    model.updateBookmarkIcon(event is ReaderViewModel.FragmentEvent.BookmarkSuccessfullyAdded)
+                is ReaderViewModel.FragmentEvent.BookmarkSuccessfullyAdded -> {
+                    updateBookmarkIcon(R.drawable.ic_baseline_bookmark_24)
+                }
+                is ReaderViewModel.FragmentEvent.BookmarkSuccessfullyRemoved -> {
+                    updateBookmarkIcon(R.drawable.ic_baseline_bookmark_border_24)
+                }
+                is ReaderViewModel.FragmentEvent.UpdateCurrentPage -> {
+                    updateProgressBar(event.totalProgress)
+                    updateCurrentPage(event.currentPage, event.totalCount)
                 }
             }
         }
@@ -122,10 +124,21 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
 
     override fun onDestroy() {
         super.onDestroy()
+        model.closePublication(requireContext())
         viewModelStore.clear()
     }
 
-    private fun onViewModelReady() {
+    override fun onDestroyView() {
+        super.onDestroyView()
+//        model.closePublication(requireContext())
+//        viewModelStore.clear()
+    }
+
+    protected open fun onViewModelReady() {
+        if (model.publication.readingOrder.isEmpty()) {
+            findNavController().navigateUp()
+        }
+
         binding.bottomBarProgress.max = model.pagesCount
         binding.bottomBarProgress.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
@@ -134,6 +147,7 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
                 progress: Int,
                 userInitiated: Boolean
             ) {
+
             }
 
             override fun onStartTrackingTouch(p0: SeekBar) {}
@@ -146,7 +160,12 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
         navigator.currentLocator
             .onEach {
                 model.updateProgression(it)
-                model.updateBookmarkIcon(model.locations.contains(it.locations))
+                updateBookmarkIcon(
+                    when (model.locations.contains(it.locations)) {
+                        true -> R.drawable.ic_baseline_bookmark_24
+                        false -> R.drawable.ic_baseline_bookmark_border_24
+                    }
+                )
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
@@ -172,20 +191,6 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
-    private fun handleReaderFragmentEvent(event: ReaderViewModel.ActivityEvent) {
-        when (event) {
-            ReaderViewModel.ActivityEvent.ViewModelReady -> onViewModelReady()
-//            ReaderViewModel.ActivityEvent.FragmentOnBackPressed -> fragmentBackPressed()
-            is ReaderViewModel.ActivityEvent.ToggleUIVisibilityRequested -> toggleUI(event.navigated)
-            is ReaderViewModel.ActivityEvent.UpdateBookmarkRequested -> updateBookmarkIcon(event.isBookmarkedPage)
-            is ReaderViewModel.ActivityEvent.UpdateCurrentPage -> updateCurrentPage(
-                event.currentPage,
-                event.totalCount
-            )
-            is ReaderViewModel.ActivityEvent.UpdateProgressBar -> updateProgressBar(event.totalProgress)
-        }
-    }
-
     private fun showOutlineFragment(outline: OutlineFragment.Outline) {
         binding.outlineContainer.isVisible = true
         childFragmentManager.commit {
@@ -200,7 +205,6 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
         go(locator, true)
     }
 
-
     private fun toggleUI(navigated: Boolean) {
         if (navigated) return
         with((requireActivity() as AppCompatActivity).supportActionBar?.isShowing != true) {
@@ -212,13 +216,8 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
         }
     }
 
-    private fun updateBookmarkIcon(isBookmarkedPage: Boolean) {
-        binding.appBar.menu.findItem(R.id.bookmark)?.setIcon(
-            when (isBookmarkedPage) {
-                true -> R.drawable.ic_baseline_bookmark_24
-                false -> R.drawable.ic_baseline_bookmark_border_24
-            }
-        )
+    private fun updateBookmarkIcon(icon: Int) {
+        binding.appBar.menu.findItem(R.id.bookmark)?.setIcon(icon)
     }
 
     private fun updateCurrentPage(page: Int, total: Int) {
@@ -230,14 +229,13 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
         binding.bottomBarProgress.progress = (progress * binding.bottomBarProgress.max).toInt()
     }
 
-
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         requireActivity().invalidateOptionsMenu()
     }
 
     override fun onTap(point: PointF): Boolean {
-        model.toggleUIVisibility(edgeTapNavigation.onTap(point, requireView()))
+        toggleUI(edgeTapNavigation.onTap(point, requireView()))
         return true
     }
 

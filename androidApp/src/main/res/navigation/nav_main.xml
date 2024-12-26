@@ -22,10 +22,6 @@
         android:id="@+id/epub_reader"
         android:name="me.kifio.kreader.android.reader.EpubReaderFragment">
 
-        <argument
-            android:name="book_id"
-            app:argType="long"/>
-
         <action
             android:id="@+id/epub_to_bookmarks"
             app:destination="@id/epub_reader" />
@@ -39,10 +35,6 @@
     <fragment
         android:id="@+id/pdf_reader"
         android:name="me.kifio.kreader.android.reader.PdfReaderFragment">
-
-        <argument
-            android:name="book_id"
-            app:argType="long"/>
 
         <action
             android:id="@+id/pdf_to_bookmarks"

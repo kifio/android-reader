@@ -7,12 +7,8 @@
 package me.kifio.kreader.android.reader
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.commitNow
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.navArgs
 import me.kifio.kreader.android.R
 import org.readium.r2.navigator.ExperimentalDecorator
@@ -24,17 +20,9 @@ import org.readium.r2.navigator.epub.css.RsProperties
 @OptIn(ExperimentalDecorator::class)
 class EpubReaderFragment() : ReaderFragment(), EpubNavigatorFragment.Listener {
 
-    private val args: EpubReaderFragmentArgs by navArgs()
-
-    override val bookId by lazy {
-        args.bookId
-    }
-
     override lateinit var navigator: Navigator
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
+    override fun onViewModelReady() {
         childFragmentManager.fragmentFactory =
             EpubNavigatorFragment.createFactory(
                 publication = model.readerInitData.publication,
@@ -50,17 +38,17 @@ class EpubReaderFragment() : ReaderFragment(), EpubNavigatorFragment.Listener {
 
         val navigatorFragmentTag = getString(org.readium.r2.navigator.R.string.epub_navigator_tag)
 
-        if (savedInstanceState == null) {
-            childFragmentManager.commitNow {
-                add(
-                    R.id.content_container,
-                    EpubNavigatorFragment::class.java,
-                    Bundle(),
-                    navigatorFragmentTag
-                )
-            }
+        childFragmentManager.commitNow(allowStateLoss = true) {
+            add(
+                R.id.content_container,
+                EpubNavigatorFragment::class.java,
+                Bundle(),
+                navigatorFragmentTag
+            )
         }
 
         navigator = childFragmentManager.findFragmentByTag(navigatorFragmentTag) as Navigator
+
+        super.onViewModelReady()
     }
 }

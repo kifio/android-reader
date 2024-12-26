@@ -6,6 +6,7 @@
 
 package me.kifio.kreader.android.reader
 
+import android.content.Context
 import android.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -13,10 +14,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.paging.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.kifio.kreader.android.Application
 import me.kifio.kreader.android.bookshelf.BookRepository
 import me.kifio.kreader.android.model.Bookmark
@@ -28,7 +31,6 @@ import org.readium.r2.shared.publication.*
 import org.readium.r2.shared.publication.services.positions
 
 @OptIn(
-    ExperimentalDecorator::class,
     ExperimentalCoroutinesApi::class,
 )
 class ReaderViewModel(
@@ -44,9 +46,6 @@ class ReaderViewModel(
 
     val bookId: Long =
         readerInitData.bookId
-
-    val activityChannel: EventChannel<ActivityEvent> =
-        EventChannel(Channel(Channel.BUFFERED), viewModelScope)
 
     val fragmentChannel: EventChannel<FragmentEvent> =
         EventChannel(Channel(Channel.BUFFERED), viewModelScope)
@@ -66,18 +65,12 @@ class ReaderViewModel(
             _bookmarks.addAll(bookRepository.bookmarksForBook(bookId = bookId))
             _bookmarksLocations.addAll(bookmarks.map { it.locations() })
             _positions.addAll(publication.positions())
-            activityChannel.send(ActivityEvent.ViewModelReady)
+            fragmentChannel.send(FragmentEvent.ViewModelReady)
         }
     }
 
     fun updateProgression(locator: Locator) = viewModelScope.launch {
-        bookRepository.saveProgression(locator, bookId)
-        activityChannel.send(
-            ActivityEvent.UpdateCurrentPage(
-                locator.locations.position ?: -1,
-                publication.positions().size
-            )
-        )
+        val asdf = bookRepository.saveProgression(locator, bookId)
 
         var totalProgress: Double? = locator.locations.totalProgression
 
@@ -85,7 +78,13 @@ class ReaderViewModel(
             totalProgress = (locator.locations.position ?: 0).toDouble() / publication.positions().size
         }
 
-        activityChannel.send(ActivityEvent.UpdateProgressBar(totalProgress))
+        fragmentChannel.send(
+            FragmentEvent.UpdateCurrentPage(
+                locator.locations.position ?: -1,
+                publication.positions().size,
+                totalProgress
+            )
+        )
     }
 
     fun insertBookmark(locator: Locator) = viewModelScope.launch {
@@ -116,76 +115,34 @@ class ReaderViewModel(
         return Locator.Locations.fromJSON(JSONObject(this.location))
     }
 
-    fun updateBookmarkIcon(isBookmarkPage: Boolean) {
-        activityChannel.send(ActivityEvent.UpdateBookmarkRequested(isBookmarkPage))
-    }
-
-    fun toggleUIVisibility(navigated: Boolean) {
-        activityChannel.send(ActivityEvent.ToggleUIVisibilityRequested(navigated))
-    }
-
-//    fun fragmentBackPressed() {
-//        activityChannel.send(ActivityEvent.FragmentOnBackPressed)
-//    }
-
     fun seekToPage(page: Int) = viewModelScope.launch {
         fragmentChannel.send(FragmentEvent.GoToLocator(_positions[page]))
     }
 
-    val searchLocators: StateFlow<List<Locator>> get() = _searchLocators
-    private var _searchLocators = MutableStateFlow<List<Locator>>(emptyList())
-
-    /**
-     * Maps the current list of search result locators into a list of [Decoration] objects to
-     * underline the results in the navigator.
-     */
-    val searchDecorations: Flow<List<Decoration>> by lazy {
-        searchLocators.map {
-            it.mapIndexed { index, locator ->
-                Decoration(
-                    // The index in the search result list is a suitable Decoration ID, as long as
-                    // we clear the search decorations between two searches.
-                    id = index.toString(),
-                    locator = locator,
-                    style = Decoration.Style.Underline(tint = Color.RED)
-                )
-            }
-        }
+    fun closePublication(ctx: Context) {
+        val readerRepository = (ctx.applicationContext as Application).readerRepository
+        readerRepository.close()
     }
-
-    sealed class ActivityEvent {
-        object ViewModelReady : ActivityEvent()
-//        object FragmentOnBackPressed : ActivityEvent()
-        data class ToggleUIVisibilityRequested(val navigated: Boolean) : ActivityEvent()
-        data class UpdateBookmarkRequested(val isBookmarkedPage: Boolean) : ActivityEvent()
-        data class UpdateCurrentPage(val currentPage: Int, val totalCount: Int) : ActivityEvent()
-        data class UpdateProgressBar(val totalProgress: Double) : ActivityEvent()
-    }
-
 
     sealed class FragmentEvent {
+        object ViewModelReady : FragmentEvent()
         object BookmarkSuccessfullyAdded : FragmentEvent()
         object BookmarkSuccessfullyRemoved : FragmentEvent()
         data class GoToLocator(val locator: Locator) : FragmentEvent()
+        data class UpdateCurrentPage(
+            val currentPage: Int,
+            val totalCount: Int,
+            val totalProgress: Double
+        ) : FragmentEvent()
     }
 
-    class Factory(
-        private val application: Application,
-        private val bookId: Long,
-    ) : ViewModelProvider.NewInstanceFactory() {
+    class Factory(private val application: Application) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
             when {
                 modelClass.isAssignableFrom(ReaderViewModel::class.java) -> {
-                    val readerInitData =
-                        try {
-                            val readerRepository = application.readerRepository.getCompleted()
-                            readerRepository[bookId]
-                        } catch (e: Exception) {
-                            // Fallbacks on a dummy Publication to avoid crashing the app until the Activity finishes.
-                            dummyReaderInitData(bookId)
-                        }
+                    val readerInitData = application.readerRepository.get()
                     ReaderViewModel(readerInitData, application.bookRepository) as T
                 }
                 else ->

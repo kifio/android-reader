@@ -30,26 +30,24 @@ import java.net.URL
  * retrieve from this repository - media or visual.
  */
 class ReaderRepository(
-    private val application: Application,
     private val streamer: Streamer,
     private val bookRepository: BookRepository
 ) {
     object CancellationException : Exception()
 
-    private val repository: MutableMap<Long, ReaderInitData> =
-        mutableMapOf()
+    private var readerInitData: ReaderInitData? = null
 
-    operator fun get(bookId: Long): ReaderInitData {
-        if (bookId in repository.keys) {
-            return repository[bookId]!!
-        } else {
-            throw IllegalStateException("Книга не была открыта. Объект Publication не был создан.")
-        }
+    fun get(): ReaderInitData {
+        return readerInitData ?: throw IllegalStateException(
+            "Книга не была открыта. Объект ReaderInitData не был создан."
+        )
     }
 
     suspend fun open(bookId: Long, context: Context): Publication {
-        if (bookId in repository.keys) {
-            return get(bookId).publication
+        var publication = readerInitData?.publication
+
+        if (publication != null) {
+            return publication
         }
 
         val book = bookRepository.get(bookId)
@@ -59,7 +57,7 @@ class ReaderRepository(
         require(file.exists())
         val asset = FileAsset(file)
 
-        val publication = streamer.open(asset, allowUserInteraction = true, sender = context)
+        publication = streamer.open(asset, allowUserInteraction = true, sender = context)
             .getOrThrow()
 
         // The publication is protected with a DRM and not unlocked.
@@ -69,29 +67,13 @@ class ReaderRepository(
         }
 
         val initialLocator = book.progression?.let { Locator.fromJSON(JSONObject(it)) }
+        readerInitData = ReaderInitData(bookId, publication, initialLocator)
 
-        val readerInitData = openVisual(bookId, publication, initialLocator)
-        repository[bookId] = readerInitData
         return publication
     }
 
-    private fun openVisual(
-        bookId: Long,
-        publication: Publication,
-        initialLocator: Locator?
-    ): ReaderInitData {
-        return ReaderInitData(bookId, publication, initialLocator)
-    }
-
-    fun close(bookId: Long) {
-        when (val initData = repository.remove(bookId)) {
-            is ReaderInitData -> {
-                initData.publication.close()
-            }
-
-            null -> {
-                // Do nothing
-            }
-        }
+    fun close() {
+        readerInitData?.publication?.close()
+        readerInitData = null
     }
 }
