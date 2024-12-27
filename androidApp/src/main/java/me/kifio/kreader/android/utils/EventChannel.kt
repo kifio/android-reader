@@ -54,12 +54,3 @@ class FlowObserver<T> (
     }
 }
 
-
-inline fun <reified T> Flow<T>.observeWhenStarted(
-    lifecycleOwner: LifecycleOwner,
-    noinline collector: suspend (T) -> Unit
-) {
-    val observer = FlowObserver(lifecycleOwner, this, collector)
-    lifecycleOwner.lifecycle.addObserver(observer)
-}
-

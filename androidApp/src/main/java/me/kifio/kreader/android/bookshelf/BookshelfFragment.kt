@@ -115,8 +115,6 @@ class BookshelfFragment: Fragment() {
             when {
                 publication.conformsTo(Publication.Profile.EPUB) ->
                     BookshelfFragmentDirections.actionBookshelfToEpub()
-                publication.conformsTo(Publication.Profile.PDF) ->
-                    BookshelfFragmentDirections.actionBookshelfToPdf()
                 else -> null
             }?.let { findNavController().navigate(it) }
         }

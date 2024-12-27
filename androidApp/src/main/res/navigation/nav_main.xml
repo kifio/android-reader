@@ -12,10 +12,6 @@
             android:id="@+id/action_bookshelf_to_epub"
             app:destination="@id/epub_reader" />
 
-        <action
-            android:id="@+id/action_bookshelf_to_pdf"
-            app:destination="@id/pdf_reader" />
-
     </fragment>
 
     <fragment
@@ -24,25 +20,11 @@
 
         <action
             android:id="@+id/epub_to_bookmarks"
-            app:destination="@id/epub_reader" />
+            app:destination="@id/bookmarks" />
 
         <action
             android:id="@+id/epub_to_contents"
-            app:destination="@id/epub_reader" />
-
-    </fragment>
-
-    <fragment
-        android:id="@+id/pdf_reader"
-        android:name="me.kifio.kreader.android.reader.PdfReaderFragment">
-
-        <action
-            android:id="@+id/pdf_to_bookmarks"
-            app:destination="@id/epub_reader" />
-
-        <action
-            android:id="@+id/pdf_to_contents"
-            app:destination="@id/epub_reader" />
+            app:destination="@id/contents" />
 
     </fragment>
 

@@ -9,6 +9,7 @@ package me.kifio.kreader.android.reader
 import android.os.Bundle
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.commitNow
+import androidx.navigation.fragment.findNavController
 import me.kifio.kreader.android.R
 import org.readium.r2.navigator.ExperimentalDecorator
 import org.readium.r2.navigator.Navigator
@@ -21,9 +22,17 @@ import org.readium.r2.shared.publication.Publication
 @OptIn(ExperimentalDecorator::class)
 class EpubReaderFragment : ReaderFragment(), EpubNavigatorFragment.Listener {
 
+    companion object {
+        const val NAVIGATOR_FRAGMENT_TAG = "EpubNavigatorFragment"
+    }
+
     override lateinit var navigator: Navigator
 
     override fun onPublicationReady(publication: Publication, initialLocator: Locator?) {
+        if (childFragmentManager.findFragmentByTag(NAVIGATOR_FRAGMENT_TAG) != null) {
+            return
+        }
+
         childFragmentManager.fragmentFactory =
             EpubNavigatorFragment.createFactory(
                 publication = publication,
@@ -37,19 +46,26 @@ class EpubReaderFragment : ReaderFragment(), EpubNavigatorFragment.Listener {
                 )
             )
 
-        val navigatorFragmentTag = getString(org.readium.r2.navigator.R.string.epub_navigator_tag)
 
         childFragmentManager.commitNow(allowStateLoss = true) {
             add(
                 R.id.content_container,
                 EpubNavigatorFragment::class.java,
                 Bundle(),
-                navigatorFragmentTag
+                NAVIGATOR_FRAGMENT_TAG
             )
         }
 
-        navigator = childFragmentManager.findFragmentByTag(navigatorFragmentTag) as Navigator
+        navigator = childFragmentManager.findFragmentByTag(NAVIGATOR_FRAGMENT_TAG) as Navigator
 
         super.onPublicationReady(publication, initialLocator)
     }
+
+    override fun showBookmarks() = findNavController().navigate(
+        EpubReaderFragmentDirections.epubToBookmarks()
+    )
+
+    override fun showContents() = findNavController().navigate(
+        EpubReaderFragmentDirections.epubToContents()
+    )
 }

@@ -6,49 +6,33 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.setFragmentResult
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.*
 import me.kifio.kreader.android.R
-import me.kifio.kreader.android.databinding.FragmentListviewBinding
 import me.kifio.kreader.android.databinding.ItemRecycleNavigationBinding
-import me.kifio.kreader.android.reader.ReaderViewModel
 import me.kifio.kreader.android.utils.extensions.outlineTitle
-import me.kifio.kreader.android.utils.viewLifecycle
 import org.readium.r2.shared.publication.Link
-import org.readium.r2.shared.publication.Publication
+import org.readium.r2.shared.publication.opds.images
 
-/*
-* Fragment to show navigation links (Table of Contents, Page lists & Landmarks)
-*/
-class NavigationFragment : Fragment() {
+class NavigationFragment : OutlineFragment() {
 
-    private lateinit var publication: Publication
-    private lateinit var links: List<Link>
+
+
     private lateinit var navAdapter: NavigationAdapter
 
-    private var binding: FragmentListviewBinding by viewLifecycle()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-
-        links = requireNotNull(requireArguments().getParcelableArrayList(LINKS_ARG))
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentListviewBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+    override var titleRes: Int = R.string.contents_tab_label
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        navAdapter = NavigationAdapter(onLinkSelected = { link -> onLinkSelected(link) })
+        navAdapter = NavigationAdapter(
+            onLinkSelected = { link -> publication.locatorFromLink(link)?.let { seekTo(it) } }
+        )
+
+        val links: List<Link> = when {
+            publication.tableOfContents.isNotEmpty() -> publication.tableOfContents
+            publication.readingOrder.isNotEmpty() -> publication.readingOrder
+            publication.images.isNotEmpty() -> publication.images
+            else -> mutableListOf()
+        }
 
         val flatLinks = mutableListOf<Pair<Int, Link>>()
 
@@ -85,28 +69,6 @@ class NavigationFragment : Fragment() {
                 binding.listView.isVisible = true
             }
         }
-
-    }
-
-    private fun onLinkSelected(link: Link) {
-        val locator = publication.locatorFromLink(link) ?: return
-
-        setFragmentResult(
-            OutlineContract.REQUEST_KEY,
-            OutlineContract.createResult(locator)
-        )
-    }
-
-    companion object {
-
-        private const val LINKS_ARG = "links"
-
-        fun newInstance(links: List<Link>) =
-            NavigationFragment().apply {
-                arguments = Bundle().apply {
-                    putParcelableArrayList(LINKS_ARG, if (links is ArrayList<Link>) links else ArrayList(links))
-                }
-            }
     }
 }
 
@@ -135,7 +97,7 @@ class NavigationAdapter(private val onLinkSelected: (Link) -> Unit) :
         holder.bind(item)
     }
 
-    inner class ViewHolder(val binding: ItemRecycleNavigationBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(private val binding: ItemRecycleNavigationBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: Pair<Int, Link>) {
             binding.navigationTextView.text = item.second.outlineTitle

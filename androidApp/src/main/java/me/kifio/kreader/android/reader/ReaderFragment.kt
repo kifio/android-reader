@@ -1,6 +1,7 @@
 package me.kifio.kreader.android.reader
 
 import android.graphics.PointF
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -14,13 +15,14 @@ import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.commit
+import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentReaderBinding
 import me.kifio.kreader.android.outline.OutlineFragment
@@ -28,8 +30,10 @@ import org.readium.r2.navigator.Navigator
 import org.readium.r2.navigator.NavigatorDelegate
 import org.readium.r2.navigator.VisualNavigator
 import org.readium.r2.navigator.util.EdgeTapNavigation
+import org.readium.r2.shared.publication.Link
 import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
+import org.readium.r2.shared.publication.services.positions
 
 abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorDelegate {
 
@@ -38,6 +42,10 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
     protected abstract val navigator: Navigator
 
     private lateinit var binding: FragmentReaderBinding
+
+    abstract fun showBookmarks()
+
+    abstract fun showContents()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -82,11 +90,11 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
         }
 
         binding.contents.setOnClickListener {
-            showOutlineFragment(OutlineFragment.Outline.Contents)
+            showContents()
         }
 
         binding.bookmarks.setOnClickListener {
-            showOutlineFragment(OutlineFragment.Outline.Bookmarks)
+            showBookmarks()
         }
 
         binding.navigateUp.setOnClickListener {
@@ -105,7 +113,7 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
                     onPublicationReady(event.publication, event.initialLocator)
                 }
                 is ReaderViewModel.FragmentEvent.GoToLocator -> {
-                    go(event.locator, true)
+                    navigator.go(event.locator, true)
                 }
                 is ReaderViewModel.FragmentEvent.BookmarkSuccessfullyAdded -> {
                     updateBookmarkIcon(R.drawable.ic_baseline_bookmark_24)
@@ -119,17 +127,25 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
                 }
             }
         }
+
+        setFragmentResultListener(OutlineFragment.FRAGMENT_REQUEST_KEY) { _, bundle ->
+            val locator: Locator? = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                bundle.getParcelable(OutlineFragment.SELECTED_LOCATOR)
+            } else {
+                bundle.getParcelable(OutlineFragment.SELECTED_LOCATOR, Locator::class.java)
+            }
+
+            locator?.let {
+                navigator.go(it, true) {
+                    model.updateProgression(locator)
+                }
+            }
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         model.closePublication()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-//        model.closePublication(requireContext())
-//        viewModelStore.clear()
     }
 
     protected open fun onPublicationReady(publication: Publication, initialLocator: Locator?) {
@@ -189,20 +205,6 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
-    private fun showOutlineFragment(outline: OutlineFragment.Outline) {
-        binding.outlineContainer.isVisible = true
-        childFragmentManager.commit {
-            replace(
-                R.id.outline_container,
-                OutlineFragment.newInstance(outline), OutlineFragment::class.simpleName
-            )
-        }
-    }
-
-    private fun closeOutlineFragment(locator: Locator) {
-        go(locator, true)
-    }
-
     private fun toggleUI(navigated: Boolean) {
         if (navigated) return
         with((requireActivity() as AppCompatActivity).supportActionBar?.isShowing != true) {
@@ -239,9 +241,5 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
 
     private val edgeTapNavigation by lazy {
         EdgeTapNavigation(navigator = navigator as VisualNavigator)
-    }
-
-    private fun go(locator: Locator, animated: Boolean) {
-        navigator.go(locator, animated)
     }
 }

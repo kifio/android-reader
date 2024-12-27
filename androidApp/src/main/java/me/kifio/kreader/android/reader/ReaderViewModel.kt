@@ -38,11 +38,11 @@ class ReaderViewModel(
     private var _bookmarks: MutableList<Bookmark> = mutableListOf()
     private var _bookmarksLocations: MutableList<Locator.Locations> = mutableListOf()
 
-    private val publication: Publication
-        get() = _publication ?: throw IllegalStateException()
-
     private val bookId: Long
         get() = _bookId ?: throw IllegalStateException()
+
+    val publication: Publication
+        get() = _publication ?: throw IllegalStateException()
 
     val pagesCount: Int
         get() = _pagesCount
@@ -55,7 +55,6 @@ class ReaderViewModel(
 
     val locations: List<Locator.Locations>
         get() = _bookmarksLocations
-
 
     suspend fun openPublication(bookId: Long): Publication? {
         try {
@@ -146,7 +145,11 @@ class ReaderViewModel(
     }
 
     fun seekToPage(page: Int) = viewModelScope.launch {
-        fragmentChannel.send(FragmentEvent.GoToLocator(publication.positions()[page]))
+        seekToLocator(publication.positions()[page])
+    }
+
+    fun seekToLocator(locator: Locator) = viewModelScope.launch {
+        fragmentChannel.send(FragmentEvent.GoToLocator(locator))
     }
 
     fun closePublication() {
@@ -159,8 +162,8 @@ class ReaderViewModel(
     }
 
     sealed class FragmentEvent {
-        object BookmarkSuccessfullyAdded : FragmentEvent()
-        object BookmarkSuccessfullyRemoved : FragmentEvent()
+        data object BookmarkSuccessfullyAdded : FragmentEvent()
+        data object BookmarkSuccessfullyRemoved : FragmentEvent()
 
         data class PublicationReady(
             val publication: Publication,

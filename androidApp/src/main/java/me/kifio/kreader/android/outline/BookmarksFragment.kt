@@ -1,7 +1,6 @@
 package me.kifio.kreader.android.outline
 
 import android.animation.ValueAnimator
-import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -12,46 +11,24 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.setFragmentResult
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.*
-import com.google.android.material.divider.MaterialDividerItemDecoration
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import me.kifio.kreader.android.R
-import me.kifio.kreader.android.databinding.FragmentListviewBinding
 import me.kifio.kreader.android.databinding.ItemRecycleBookmarkBinding
 import me.kifio.kreader.android.model.Bookmark
-import me.kifio.kreader.android.reader.ReaderViewModel
 import me.kifio.kreader.android.utils.extensions.outlineTitle
-import me.kifio.kreader.android.utils.viewLifecycle
 import org.readium.r2.shared.publication.Publication
 import kotlin.math.abs
 
-
-private fun Int.toPx(context: Context): Int =
-    (this * context.resources.displayMetrics.density).toInt()
-
-private fun Float.toPx(context: Context): Int =
-    (this * context.resources.displayMetrics.density).toInt()
-
-
-class BookmarksFragment : Fragment() {
-
-    lateinit var publication: Publication
-    private val viewModel: ReaderViewModel by viewModels()
+class BookmarksFragment : OutlineFragment() {
+    
+    override var titleRes: Int = R.string.bookmarks_tab_label
+    
     private lateinit var bookmarkAdapter: BookmarkAdapter
-    private var binding: FragmentListviewBinding by viewLifecycle()
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentListviewBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
+    
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -65,14 +42,14 @@ class BookmarksFragment : Fragment() {
             adapter = bookmarkAdapter
         }
 
-        when (viewModel.bookmarks.isEmpty()) {
+        when (model.bookmarks.isEmpty()) {
             true -> {
                 binding.placeholder.setText(R.string.bookmarks_placeholder)
                 binding.listView.isVisible = false
             }
             false -> {
                 bookmarkAdapter.submitList(
-                    viewModel.bookmarks.sortedWith(
+                    model.bookmarks.sortedWith(
                         compareBy({ it.resourceIndex }, { it.locator.locations.progression })
                     )
                 )
@@ -101,7 +78,7 @@ class BookmarksFragment : Fragment() {
                 R.drawable.ic_baseline_delete_24
             ) ?: throw java.lang.IllegalStateException()
 
-            private val deleteIconMargin = 8.toPx(requireContext())
+            private val deleteIconMargin = resources.getDimension(R.dimen.delete_bookmark_icon_margin).toInt()
 
             override fun onMove(
                 recyclerView: RecyclerView,
@@ -111,9 +88,9 @@ class BookmarksFragment : Fragment() {
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.bindingAdapterPosition
-                viewModel.deleteBookmark(viewModel.bookmarks[position])
+                model.deleteBookmark(model.bookmarks[position])
                 bookmarkAdapter.submitList(
-                    viewModel.bookmarks.sortedWith(
+                    model.bookmarks.sortedWith(
                         compareBy({ it.resourceIndex }, { it.locator.locations.progression })
                     )
                 )
@@ -185,10 +162,7 @@ class BookmarksFragment : Fragment() {
     }
 
     private fun onBookmarkSelected(bookmark: Bookmark) {
-        setFragmentResult(
-            OutlineContract.REQUEST_KEY,
-            OutlineContract.createResult(bookmark.locator)
-        )
+        model.seekToLocator(bookmark.locator)
     }
 
     companion object {
