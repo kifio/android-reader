@@ -17,24 +17,12 @@
             @color/background
         </item>
 
-        <!-- Optional: set to transparent if your app is drawing behind the status bar. -->
-        <item name="android:statusBarColor">
-            @color/background
-        </item>
-
-        <!-- Optional: set the status bar light and content dark. -->
-        <item name="android:windowLightStatusBar">
-            @bool/windowLightStatusBar
-        </item>
+        <item name="android:windowTranslucentStatus">true</item>
 
     </style>
 
     <style name="ReaderToolbarStyle" parent="Widget.MaterialComponents.Toolbar">
         <item name="titleTextColor">@color/primary</item>
-        <item name="android:background">@color/background</item>
-    </style>
-
-    <style name="ReaderBottomAppBarStyle" parent="Widget.MaterialComponents.BottomAppBar">
         <item name="android:background">@color/background</item>
     </style>
 

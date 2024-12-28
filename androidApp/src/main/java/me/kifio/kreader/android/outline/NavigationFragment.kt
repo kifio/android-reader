@@ -15,8 +15,6 @@ import org.readium.r2.shared.publication.opds.images
 
 class NavigationFragment : OutlineFragment() {
 
-
-
     private lateinit var navAdapter: NavigationAdapter
 
     override var titleRes: Int = R.string.contents_tab_label

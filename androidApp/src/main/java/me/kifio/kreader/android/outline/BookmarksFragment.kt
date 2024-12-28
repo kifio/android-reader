@@ -34,7 +34,7 @@ class BookmarksFragment : OutlineFragment() {
 
         bookmarkAdapter = BookmarkAdapter(
             publication,
-            onBookmarkSelectedRequested = { bookmark -> onBookmarkSelected(bookmark) })
+            onBookmarkSelectedRequested = { bookmark -> seekTo(bookmark.locator) })
 
         binding.listView.apply {
             setHasFixedSize(true)
@@ -159,10 +159,6 @@ class BookmarksFragment : OutlineFragment() {
             }
 
         }).attachToRecyclerView(binding.listView)
-    }
-
-    private fun onBookmarkSelected(bookmark: Bookmark) {
-        model.seekToLocator(bookmark.locator)
     }
 
     companion object {

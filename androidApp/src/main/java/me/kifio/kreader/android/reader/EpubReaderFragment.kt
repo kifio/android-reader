@@ -7,10 +7,16 @@
 package me.kifio.kreader.android.reader
 
 import android.os.Bundle
+import android.view.View
 import androidx.core.content.res.ResourcesCompat
+import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.commitNow
+import androidx.navigation.NavOptions
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import me.kifio.kreader.android.R
+import me.kifio.kreader.android.outline.NavigationFragment
+import me.kifio.kreader.android.outline.OutlineFragment
 import org.readium.r2.navigator.ExperimentalDecorator
 import org.readium.r2.navigator.Navigator
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
@@ -26,13 +32,7 @@ class EpubReaderFragment : ReaderFragment(), EpubNavigatorFragment.Listener {
         const val NAVIGATOR_FRAGMENT_TAG = "EpubNavigatorFragment"
     }
 
-    override lateinit var navigator: Navigator
-
     override fun onPublicationReady(publication: Publication, initialLocator: Locator?) {
-        if (childFragmentManager.findFragmentByTag(NAVIGATOR_FRAGMENT_TAG) != null) {
-            return
-        }
-
         childFragmentManager.fragmentFactory =
             EpubNavigatorFragment.createFactory(
                 publication = publication,
@@ -46,8 +46,7 @@ class EpubReaderFragment : ReaderFragment(), EpubNavigatorFragment.Listener {
                 )
             )
 
-
-        childFragmentManager.commitNow(allowStateLoss = true) {
+        childFragmentManager.commitNow {
             add(
                 R.id.content_container,
                 EpubNavigatorFragment::class.java,
@@ -57,7 +56,6 @@ class EpubReaderFragment : ReaderFragment(), EpubNavigatorFragment.Listener {
         }
 
         navigator = childFragmentManager.findFragmentByTag(NAVIGATOR_FRAGMENT_TAG) as Navigator
-
         super.onPublicationReady(publication, initialLocator)
     }
 

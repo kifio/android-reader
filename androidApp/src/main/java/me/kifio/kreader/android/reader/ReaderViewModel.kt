@@ -6,6 +6,7 @@
 
 package me.kifio.kreader.android.reader
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -92,24 +93,27 @@ class ReaderViewModel(
         _pagesCount = publication.positions().size
     }
 
-    fun openReader() {
+    fun openReader() = viewModelScope.launch {
         fragmentChannel.send(
             FragmentEvent.PublicationReady(publication, _initialLocator)
         )
     }
 
     fun updateProgression(locator: Locator) = viewModelScope.launch {
+        val page = locator.locations.position ?: return@launch
+
+        _initialLocator = locator
         bookRepository.saveProgression(locator, bookId)
 
         var totalProgress: Double? = locator.locations.totalProgression
 
         if (totalProgress == null) {
-            totalProgress = (locator.locations.position ?: 0).toDouble() / publication.positions().size
+            totalProgress = page.toDouble() / publication.positions().size
         }
 
         fragmentChannel.send(
             FragmentEvent.UpdateCurrentPage(
-                locator.locations.position ?: -1,
+                page,
                 publication.positions().size,
                 totalProgress
             )
@@ -145,11 +149,21 @@ class ReaderViewModel(
     }
 
     fun seekToPage(page: Int) = viewModelScope.launch {
-        seekToLocator(publication.positions()[page])
+        _initialLocator = publication.positions()[page]
+        _initialLocator?.let { fragmentChannel.send(FragmentEvent.GoToLocator(it)) }
     }
 
-    fun seekToLocator(locator: Locator) = viewModelScope.launch {
-        fragmentChannel.send(FragmentEvent.GoToLocator(locator))
+    fun updateLocator(locator: Locator?) = viewModelScope.launch {
+        if (locator != null) {
+            _initialLocator = locator
+        }
+
+        _initialLocator?.let {
+            fragmentChannel.send(
+                FragmentEvent.PublicationReady(publication, it)
+            )
+        }
+
     }
 
     fun closePublication() {

@@ -20,9 +20,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentReaderBinding
 import me.kifio.kreader.android.outline.OutlineFragment
@@ -30,17 +31,17 @@ import org.readium.r2.navigator.Navigator
 import org.readium.r2.navigator.NavigatorDelegate
 import org.readium.r2.navigator.VisualNavigator
 import org.readium.r2.navigator.util.EdgeTapNavigation
-import org.readium.r2.shared.publication.Link
 import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
-import org.readium.r2.shared.publication.services.positions
 
 abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorDelegate {
 
     protected val model: ReaderViewModel by activityViewModels()
 
-    protected abstract val navigator: Navigator
+    protected var navigator: Navigator? = null
 
+    private var navigatorFlow: Flow<Locator>? = null
+    private var navigatorFlowJob: Job? = null
     private lateinit var binding: FragmentReaderBinding
 
     abstract fun showBookmarks()
@@ -65,7 +66,7 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
 
         addMenu()
 
-        arrayOf(binding.contentContainer, binding.outlineContainer).forEach {
+        arrayOf(binding.contentContainer).forEach {
             it.applyInsetter {
                 type(statusBars = true, navigationBars = true) {
                     margin(bottom = true, top = true)
@@ -101,11 +102,22 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
             findNavController().navigateUp()
         }
 
-        model.openReader()
-    }
+        binding.bottomBarProgress.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(
+                seekBar: SeekBar,
+                progress: Int,
+                userInitiated: Boolean
+            ) {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+            }
+
+            override fun onStartTrackingTouch(p0: SeekBar) {}
+
+            override fun onStopTrackingTouch(p0: SeekBar) {
+                model.seekToPage(p0.progress)
+            }
+        })
 
         model.fragmentChannel.receive(this) { event ->
             when (event) {
@@ -113,7 +125,7 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
                     onPublicationReady(event.publication, event.initialLocator)
                 }
                 is ReaderViewModel.FragmentEvent.GoToLocator -> {
-                    navigator.go(event.locator, true)
+                    navigator?.go(event.locator, true)
                 }
                 is ReaderViewModel.FragmentEvent.BookmarkSuccessfullyAdded -> {
                     updateBookmarkIcon(R.drawable.ic_baseline_bookmark_24)
@@ -135,17 +147,24 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
                 bundle.getParcelable(OutlineFragment.SELECTED_LOCATOR, Locator::class.java)
             }
 
-            locator?.let {
-                navigator.go(it, true) {
-                    model.updateProgression(locator)
-                }
-            }
+            model.updateLocator(locator)
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        model.openReader()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         model.closePublication()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        navigatorFlow = null
+        navigatorFlowJob?.cancel()
     }
 
     protected open fun onPublicationReady(publication: Publication, initialLocator: Locator?) {
@@ -154,25 +173,9 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
         }
 
         binding.bottomBarProgress.max = model.pagesCount
-        binding.bottomBarProgress.setOnSeekBarChangeListener(object :
-            SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(
-                seekBar: SeekBar,
-                progress: Int,
-                userInitiated: Boolean
-            ) {
 
-            }
-
-            override fun onStartTrackingTouch(p0: SeekBar) {}
-
-            override fun onStopTrackingTouch(p0: SeekBar) {
-                model.seekToPage(p0.progress)
-            }
-        })
-
-        navigator.currentLocator
-            .onEach {
+        navigator?.currentLocator
+            ?.onEach {
                 model.updateProgression(it)
                 updateBookmarkIcon(
                     when (model.locations.contains(it.locations)) {
@@ -181,7 +184,7 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
                     }
                 )
             }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
+            ?.launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun addMenu() {
@@ -193,6 +196,7 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.bookmark -> {
+                        val navigator = this@ReaderFragment.navigator ?: return true
                         when (model.locations.contains(navigator.currentLocator.value.locations)) {
                             true -> model.deleteBookmark(navigator.currentLocator.value)
                             false -> model.insertBookmark(navigator.currentLocator.value)

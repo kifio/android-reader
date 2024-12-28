@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
 import androidx.navigation.fragment.findNavController
+import dev.chrisbanes.insetter.applyInsetter
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentOutlineBinding
 import me.kifio.kreader.android.reader.ReaderViewModel
@@ -42,8 +43,18 @@ abstract class OutlineFragment : Fragment(R.layout.fragment_outline) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.navigateUp.setOnClickListener { findNavController().navigateUp() }
+        binding.navigateUp.setOnClickListener {
+            setFragmentResult(FRAGMENT_REQUEST_KEY, Bundle.EMPTY)
+            findNavController().navigateUp()
+        }
+
         binding.title.setText(titleRes)
+
+        binding.root.applyInsetter {
+            type(statusBars = true) {
+                margin(top = true)
+            }
+        }
     }
 
     protected fun seekTo(locator: Locator) {
