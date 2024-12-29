@@ -58,12 +58,4 @@ class EpubReaderFragment : ReaderFragment(), EpubNavigatorFragment.Listener {
         navigator = childFragmentManager.findFragmentByTag(NAVIGATOR_FRAGMENT_TAG) as Navigator
         super.onPublicationReady(publication, initialLocator)
     }
-
-    override fun showBookmarks() = findNavController().navigate(
-        EpubReaderFragmentDirections.epubToBookmarks()
-    )
-
-    override fun showContents() = findNavController().navigate(
-        EpubReaderFragmentDirections.epubToContents()
-    )
 }

@@ -3,6 +3,7 @@ package me.kifio.kreader.android.reader
 import android.graphics.PointF
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -43,10 +44,6 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
     private var navigatorFlow: Flow<Locator>? = null
     private var navigatorFlowJob: Job? = null
     private lateinit var binding: FragmentReaderBinding
-
-    abstract fun showBookmarks()
-
-    abstract fun showContents()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -91,11 +88,11 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
         }
 
         binding.contents.setOnClickListener {
-            showContents()
+            model.activityChannel.send(ReaderViewModel.ActivityEvent.OpenContents)
         }
 
         binding.bookmarks.setOnClickListener {
-            showBookmarks()
+            model.activityChannel.send(ReaderViewModel.ActivityEvent.OpenBookmarks)
         }
 
         binding.navigateUp.setOnClickListener {
@@ -139,16 +136,6 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
                 }
             }
         }
-
-        setFragmentResultListener(OutlineFragment.FRAGMENT_REQUEST_KEY) { _, bundle ->
-            val locator: Locator? = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                bundle.getParcelable(OutlineFragment.SELECTED_LOCATOR)
-            } else {
-                bundle.getParcelable(OutlineFragment.SELECTED_LOCATOR, Locator::class.java)
-            }
-
-            model.updateLocator(locator)
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -165,6 +152,7 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
         super.onDestroyView()
         navigatorFlow = null
         navigatorFlowJob?.cancel()
+        navigator = null
     }
 
     protected open fun onPublicationReady(publication: Publication, initialLocator: Locator?) {

@@ -51,6 +51,9 @@ class ReaderViewModel(
     val fragmentChannel: EventChannel<FragmentEvent> =
         EventChannel(Channel(Channel.BUFFERED), viewModelScope)
 
+    val activityChannel: EventChannel<ActivityEvent> =
+        EventChannel(Channel(Channel.BUFFERED), viewModelScope)
+
     val bookmarks: List<Bookmark>
         get() = _bookmarks
 
@@ -158,12 +161,13 @@ class ReaderViewModel(
             _initialLocator = locator
         }
 
+//        _initialLocator?.let { fragmentChannel.send(FragmentEvent.GoToLocator(it)) }
+
         _initialLocator?.let {
             fragmentChannel.send(
                 FragmentEvent.PublicationReady(publication, it)
             )
         }
-
     }
 
     fun closePublication() {
@@ -191,6 +195,11 @@ class ReaderViewModel(
             val totalCount: Int,
             val totalProgress: Double
         ) : FragmentEvent()
+    }
+
+    sealed class ActivityEvent {
+        data object OpenContents : ActivityEvent()
+        data object OpenBookmarks : ActivityEvent()
     }
 
     class Factory(private val application: Application) : ViewModelProvider.NewInstanceFactory() {

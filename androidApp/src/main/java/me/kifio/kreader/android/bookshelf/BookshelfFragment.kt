@@ -1,6 +1,7 @@
 package me.kifio.kreader.android.bookshelf
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -71,7 +72,7 @@ fun MyApplicationTheme(
 class BookshelfFragment: Fragment() {
 
     private val bookShelfVM: BookshelfViewModel by activityViewModels()
-    private val readerVM: ReaderViewModel by activityViewModels { ReaderViewModel.Factory(requireActivity().application as Application) }
+    private val readerVM: ReaderViewModel by activityViewModels()
 
     private val getContent =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -86,17 +87,20 @@ class BookshelfFragment: Fragment() {
         return ComposeView(requireContext()).apply {
             // Dispose of the Composition when the view's LifecycleOwner
             // is destroyed
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
-                MyApplicationTheme {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colors.background
-                    ) {
-                        BookshelfView(requireContext(), bookShelfVM, ::openFilePicker, ::openBook)
+            setViewCompositionStrategy(ViewCompositionStrategy.Default)
+            post {
+                setContent {
+                    MyApplicationTheme {
+                        Surface(
+                            modifier = Modifier.fillMaxSize(),
+                            color = MaterialTheme.colors.background
+                        ) {
+                            BookshelfView(requireContext(), bookShelfVM, ::openFilePicker, ::openBook)
+                        }
                     }
                 }
             }
+
         }
     }
 

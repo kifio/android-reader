@@ -53,7 +53,7 @@ fun BookshelfView(
                     ),
                 backgroundColor = MaterialTheme.colors.background,
                 contentColor = MaterialTheme.colors.onBackground,
-                title = { AppBarTitle(viewModel) },
+                title = { AppBarTitle() },
                 actions = {
                     Image(
                         painter = painterResource(id = R.drawable.ic_add_circle_outline_24),
@@ -90,7 +90,7 @@ fun BookshelfView(
 }
 
 @Composable
-fun AppBarTitle(viewModel: BookshelfViewModel) {
+fun AppBarTitle() {
     Text(
         modifier = Modifier
             .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()),

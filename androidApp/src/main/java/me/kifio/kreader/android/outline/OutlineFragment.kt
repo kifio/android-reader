@@ -19,8 +19,9 @@ import org.readium.r2.shared.publication.Publication
 abstract class OutlineFragment : Fragment(R.layout.fragment_outline) {
 
     companion object {
-        val FRAGMENT_REQUEST_KEY = "OUTLINE_FRAGMENT_REQUEST"
-        val SELECTED_LOCATOR = "SELECTED_LOCATOR"
+        const val FRAGMENT_REQUEST_KEY = "OUTLINE_FRAGMENT_REQUEST"
+        const val SELECTED_LOCATOR = "SELECTED_LOCATOR"
+        const val TAG = "OutlineFragment"
     }
 
     protected abstract var titleRes: Int
@@ -45,7 +46,7 @@ abstract class OutlineFragment : Fragment(R.layout.fragment_outline) {
         super.onViewCreated(view, savedInstanceState)
         binding.navigateUp.setOnClickListener {
             setFragmentResult(FRAGMENT_REQUEST_KEY, Bundle.EMPTY)
-            findNavController().navigateUp()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
 
         binding.title.setText(titleRes)
@@ -61,6 +62,6 @@ abstract class OutlineFragment : Fragment(R.layout.fragment_outline) {
         setFragmentResult(FRAGMENT_REQUEST_KEY, Bundle().apply {
             putParcelable(SELECTED_LOCATOR, locator)
         })
-        findNavController().navigateUp()
+        activity?.onBackPressedDispatcher?.onBackPressed()
     }
 }
