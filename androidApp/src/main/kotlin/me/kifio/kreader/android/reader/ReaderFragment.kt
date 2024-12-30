@@ -40,9 +40,9 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
     }
 
     protected val model: ReaderViewModel by activityViewModels()
-
     protected var navigator: Navigator? = null
 
+    private var edgeTapNavigation: EdgeTapNavigation? = null
     private var navigatorFlow: Flow<Locator>? = null
     private var navigatorFlowJob: Job? = null
     private lateinit var binding: FragmentReaderBinding
@@ -164,6 +164,11 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
             }
         )
 
+        (navigator as? VisualNavigator)?.let {
+            edgeTapNavigation = EdgeTapNavigation(navigator = it)
+
+        }
+
         model.openReader()
     }
 
@@ -232,11 +237,9 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
     }
 
     override fun onTap(point: PointF): Boolean {
-        toggleUI(edgeTapNavigation.onTap(point, requireView()))
+        edgeTapNavigation?.let {
+            toggleUI(it.onTap(point, requireView()))
+        }
         return true
-    }
-
-    private val edgeTapNavigation by lazy {
-        EdgeTapNavigation(navigator = navigator as VisualNavigator)
     }
 }
