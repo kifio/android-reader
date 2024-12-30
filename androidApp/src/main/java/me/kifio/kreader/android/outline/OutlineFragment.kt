@@ -5,13 +5,17 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.NavHostFragment.Companion
 import androidx.navigation.fragment.findNavController
 import dev.chrisbanes.insetter.applyInsetter
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentOutlineBinding
+import me.kifio.kreader.android.reader.ReaderFragment
 import me.kifio.kreader.android.reader.ReaderViewModel
 import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
@@ -56,6 +60,15 @@ abstract class OutlineFragment : Fragment(R.layout.fragment_outline) {
                 margin(top = true)
             }
         }
+
+        activity?.onBackPressedDispatcher?.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    model.activityChannel.send(ReaderViewModel.ActivityEvent.CloseOutlineFragment)
+                }
+            }
+        )
     }
 
     protected fun seekTo(locator: Locator) {

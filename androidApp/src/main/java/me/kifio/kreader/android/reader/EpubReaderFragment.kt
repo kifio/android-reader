@@ -7,55 +7,74 @@
 package me.kifio.kreader.android.reader
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
-import androidx.fragment.app.FragmentContainerView
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commitNow
-import androidx.navigation.NavOptions
-import androidx.navigation.findNavController
-import androidx.navigation.fragment.findNavController
 import me.kifio.kreader.android.R
-import me.kifio.kreader.android.outline.NavigationFragment
-import me.kifio.kreader.android.outline.OutlineFragment
 import org.readium.r2.navigator.ExperimentalDecorator
 import org.readium.r2.navigator.Navigator
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
 import org.readium.r2.navigator.epub.css.Color
 import org.readium.r2.navigator.epub.css.RsProperties
-import org.readium.r2.shared.publication.Locator
-import org.readium.r2.shared.publication.Publication
 
 @OptIn(ExperimentalDecorator::class)
 class EpubReaderFragment : ReaderFragment(), EpubNavigatorFragment.Listener {
 
-    companion object {
-        const val NAVIGATOR_FRAGMENT_TAG = "EpubNavigatorFragment"
-    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-    override fun onPublicationReady(publication: Publication, initialLocator: Locator?) {
         childFragmentManager.fragmentFactory =
             EpubNavigatorFragment.createFactory(
-                publication = publication,
-                initialLocator = initialLocator,
+                publication = model.publication,
+                initialLocator = model.locator,
                 listener = this,
                 config = EpubNavigatorFragment.Configuration(
                     readiumCssRsProperties = RsProperties(
-                        textColor = Color.Int(ResourcesCompat.getColor(resources, R.color.primary, null)),
-                        backgroundColor = Color.Int(ResourcesCompat.getColor(resources, R.color.background, null)),
+                        textColor = Color.Int(
+                            ResourcesCompat.getColor(
+                                resources,
+                                R.color.primary,
+                                null
+                            )
+                        ),
+                        backgroundColor = Color.Int(
+                            ResourcesCompat.getColor(
+                                resources,
+                                R.color.background,
+                                null
+                            )
+                        ),
                     )
                 )
             )
+    }
 
-        childFragmentManager.commitNow {
-            add(
-                R.id.content_container,
-                EpubNavigatorFragment::class.java,
-                Bundle(),
-                NAVIGATOR_FRAGMENT_TAG
-            )
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        val view = super.onCreateView(inflater, container, savedInstanceState)
+        val navigatorFragmentTag = getString(org.readium.r2.navigator.R.string.epub_navigator_tag)
+
+        if (savedInstanceState == null) {
+            childFragmentManager.commitNow {
+                add(
+                    R.id.content_container,
+                    EpubNavigatorFragment::class.java,
+                    Bundle(),
+                    navigatorFragmentTag
+                )
+            }
+
+            childFragmentManager.findFragmentByTag(navigatorFragmentTag)?.retainInstance = true
         }
 
-        navigator = childFragmentManager.findFragmentByTag(NAVIGATOR_FRAGMENT_TAG) as Navigator
-        super.onPublicationReady(publication, initialLocator)
+        navigator = childFragmentManager.findFragmentByTag(navigatorFragmentTag) as Navigator
+        return view
     }
 }

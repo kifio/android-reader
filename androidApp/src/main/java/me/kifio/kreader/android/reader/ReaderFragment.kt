@@ -1,9 +1,7 @@
 package me.kifio.kreader.android.reader
 
 import android.graphics.PointF
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -11,14 +9,18 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentFactory
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.setFragmentResultListener
+import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.NavHostFragment.Companion
 import androidx.navigation.fragment.findNavController
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.Job
@@ -27,7 +29,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentReaderBinding
-import me.kifio.kreader.android.outline.OutlineFragment
 import org.readium.r2.navigator.Navigator
 import org.readium.r2.navigator.NavigatorDelegate
 import org.readium.r2.navigator.VisualNavigator
@@ -36,6 +37,10 @@ import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
 
 abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorDelegate {
+
+    companion object {
+        const val FRAGMENT_REQUEST_KEY = "READER_FRAGMENT_REQUEST"
+    }
 
     protected val model: ReaderViewModel by activityViewModels()
 
@@ -96,6 +101,7 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
         }
 
         binding.navigateUp.setOnClickListener {
+            setFragmentResult(FRAGMENT_REQUEST_KEY, Bundle.EMPTY)
             findNavController().navigateUp()
         }
 
@@ -136,29 +142,6 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
                 }
             }
         }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        model.openReader()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        model.closePublication()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        navigatorFlow = null
-        navigatorFlowJob?.cancel()
-        navigator = null
-    }
-
-    protected open fun onPublicationReady(publication: Publication, initialLocator: Locator?) {
-        if (publication.readingOrder.isEmpty()) {
-            findNavController().navigateUp()
-        }
 
         binding.bottomBarProgress.max = model.pagesCount
 
@@ -173,6 +156,31 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
                 )
             }
             ?.launchIn(viewLifecycleOwner.lifecycleScope)
+
+        activity?.onBackPressedDispatcher?.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    setFragmentResult(FRAGMENT_REQUEST_KEY, Bundle.EMPTY)
+                    findNavController().navigateUp()
+                }
+            }
+        )
+
+        model.openReader()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        navigatorFlow = null
+        navigatorFlowJob?.cancel()
+        navigator = null
+    }
+
+    protected open fun onPublicationReady(publication: Publication, initialLocator: Locator?) {
+        if (publication.readingOrder.isEmpty()) {
+            findNavController().navigateUp()
+        }
     }
 
     private fun addMenu() {

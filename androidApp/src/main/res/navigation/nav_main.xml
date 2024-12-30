@@ -18,22 +18,6 @@
         android:id="@+id/epub_reader"
         android:name="me.kifio.kreader.android.reader.EpubReaderFragment">
 
-        <action
-            android:id="@+id/epub_to_bookmarks"
-            app:destination="@id/bookmarks" />
-
-        <action
-            android:id="@+id/epub_to_contents"
-            app:destination="@id/contents" />
-
     </fragment>
-
-    <fragment
-        android:id="@+id/bookmarks"
-        android:name="me.kifio.kreader.android.outline.BookmarksFragment"/>
-
-    <fragment
-        android:id="@+id/contents"
-        android:name="me.kifio.kreader.android.outline.NavigationFragment"/>
 
 </navigation>

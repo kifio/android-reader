@@ -2,27 +2,30 @@ package me.kifio.kreader.android
 
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.ViewTreeObserver.OnPreDrawListener
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.fragment.app.setFragmentResultListener
+import androidx.fragment.app.setFragmentResult
 import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
-import androidx.navigation.fragment.findNavController
 import me.kifio.kreader.android.bookshelf.BookshelfViewModel
 import me.kifio.kreader.android.databinding.ActivityMainBinding
 import me.kifio.kreader.android.outline.BookmarksFragment
 import me.kifio.kreader.android.outline.NavigationFragment
 import me.kifio.kreader.android.outline.OutlineFragment
+import me.kifio.kreader.android.reader.ReaderFragment
 import me.kifio.kreader.android.reader.ReaderViewModel
 import org.readium.r2.shared.publication.Locator
 
 class MainActivity : AppCompatActivity() {
 
-    private val bookShelfVM: BookshelfViewModel by viewModels { BookshelfViewModel.Factory(application as Application) }
+    private val bookShelfVM: BookshelfViewModel by viewModels {
+        BookshelfViewModel.Factory(
+            application as Application
+        )
+    }
     private val readerVM: ReaderViewModel by viewModels { ReaderViewModel.Factory(application as Application) }
 
     private lateinit var binding: ActivityMainBinding
@@ -30,14 +33,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+        installSplashScreen()
 
         if (savedInstanceState == null) {
-            installSplashScreen()
 
             window.decorView.viewTreeObserver.addOnPreDrawListener(
                 object : OnPreDrawListener {
                     override fun onPreDraw(): Boolean {
-                        // Check if the initial data is ready.
                         return if (bookShelfVM.shelfState != null) {
                             setContentView(binding.root)
                             window.decorView.viewTreeObserver.removeOnPreDrawListener(this)
@@ -58,6 +60,7 @@ class MainActivity : AppCompatActivity() {
             when (event) {
                 ReaderViewModel.ActivityEvent.OpenContents -> showOutlineFragment(NavigationFragment())
                 ReaderViewModel.ActivityEvent.OpenBookmarks -> showOutlineFragment(BookmarksFragment())
+                ReaderViewModel.ActivityEvent.CloseOutlineFragment -> removeOutlineFragment()
             }
         }
 
@@ -73,19 +76,6 @@ class MainActivity : AppCompatActivity() {
             removeOutlineFragment()
             readerVM.updateLocator(locator)
         }
-
-        onBackPressedDispatcher.addCallback(
-            this,
-            object: OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    if (removeOutlineFragment() || findNavController(supportFragmentManager.fragments.first()).navigateUp()) {
-                       return
-                    } else {
-                        finish()
-                    }
-                }
-            }
-        )
     }
 
     private fun showOutlineFragment(fragment: OutlineFragment) {

@@ -6,7 +6,6 @@
 
 package me.kifio.kreader.android.reader
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -44,6 +43,9 @@ class ReaderViewModel(
 
     val publication: Publication
         get() = _publication ?: throw IllegalStateException()
+
+    val locator: Locator?
+        get() = _initialLocator
 
     val pagesCount: Int
         get() = _pagesCount
@@ -161,13 +163,7 @@ class ReaderViewModel(
             _initialLocator = locator
         }
 
-//        _initialLocator?.let { fragmentChannel.send(FragmentEvent.GoToLocator(it)) }
-
-        _initialLocator?.let {
-            fragmentChannel.send(
-                FragmentEvent.PublicationReady(publication, it)
-            )
-        }
+        _initialLocator?.let { fragmentChannel.send(FragmentEvent.GoToLocator(it)) }
     }
 
     fun closePublication() {
@@ -200,6 +196,7 @@ class ReaderViewModel(
     sealed class ActivityEvent {
         data object OpenContents : ActivityEvent()
         data object OpenBookmarks : ActivityEvent()
+        data object CloseOutlineFragment: ActivityEvent()
     }
 
     class Factory(private val application: Application) : ViewModelProvider.NewInstanceFactory() {

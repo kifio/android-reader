@@ -1,11 +1,11 @@
 package me.kifio.kreader.android.bookshelf
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,13 +25,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
-import me.kifio.kreader.android.Application
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.model.Book
+import me.kifio.kreader.android.reader.ReaderFragment
 import me.kifio.kreader.android.reader.ReaderViewModel
 import org.readium.r2.shared.publication.Publication
 
@@ -84,9 +84,11 @@ class BookshelfFragment: Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        setFragmentResultListener(ReaderFragment.FRAGMENT_REQUEST_KEY) { _ , _ ->
+            readerVM.closePublication()
+        }
+
         return ComposeView(requireContext()).apply {
-            // Dispose of the Composition when the view's LifecycleOwner
-            // is destroyed
             setViewCompositionStrategy(ViewCompositionStrategy.Default)
             post {
                 setContent {
@@ -100,12 +102,23 @@ class BookshelfFragment: Fragment() {
                     }
                 }
             }
-
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        activity?.onBackPressedDispatcher?.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    activity?.finish()
+                }
+            }
+        )
+    }
+
     private fun openFilePicker() =
-        getContent.launch(arrayOf("application/epub+zip", "application/pdf"))
+        getContent.launch(arrayOf("application/epub+zip"))
 
     private fun openBook(book: Book) {
         viewLifecycleOwner.lifecycleScope.launch {
