@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.parcelize) apply false
+    alias(libs.plugins.navigation.safeargs) apply false
 }
 
 tasks.register("clean", Delete::class) {

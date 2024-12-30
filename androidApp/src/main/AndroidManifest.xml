@@ -19,10 +19,5 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".reader.ReaderActivity"
-            android:theme="@style/AppTheme"
-            android:exported="true"/>
-
     </application>
 </manifest> 

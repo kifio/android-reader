@@ -6,13 +6,18 @@
 
     <fragment
         android:id="@+id/bookshelf"
-        android:name="me.kifio.kreader.android.bookshelf.BookshelfFragment"
-        android:label="Bookshelf">
+        android:name="me.kifio.kreader.android.bookshelf.BookshelfFragment">
 
-<!--        &lt;!&ndash; Action to navigate from Profile to Friends List. &ndash;&gt;-->
-<!--        <action-->
-<!--            android:id="@+id/action_profile_to_friendslist"-->
-<!--            app:destination="@id/friendslist" />-->
+        <action
+            android:id="@+id/action_bookshelf_to_epub"
+            app:destination="@id/epub_reader" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/epub_reader"
+        android:name="me.kifio.kreader.android.reader.EpubReaderFragment">
+
     </fragment>
 
 </navigation>

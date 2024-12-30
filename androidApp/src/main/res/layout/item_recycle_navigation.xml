@@ -13,13 +13,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="wrap_content"
     android:layout_width="match_parent"
-    android:background="@color/background">
+    android:background="@drawable/ic_ripple">
 
     <ImageView
         android:id="@+id/indentation"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:contentDescription="TODO"
         tools:ignore="Suspicious0dp" />
 
     <TextView
