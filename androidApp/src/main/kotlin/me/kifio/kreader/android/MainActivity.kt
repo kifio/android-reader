@@ -4,18 +4,14 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.ViewTreeObserver.OnPreDrawListener
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.fragment.app.setFragmentResult
-import androidx.navigation.fragment.NavHostFragment.Companion.findNavController
 import me.kifio.kreader.android.bookshelf.BookshelfViewModel
 import me.kifio.kreader.android.databinding.ActivityMainBinding
 import me.kifio.kreader.android.outline.BookmarksFragment
 import me.kifio.kreader.android.outline.NavigationFragment
 import me.kifio.kreader.android.outline.OutlineFragment
-import me.kifio.kreader.android.reader.ReaderFragment
 import me.kifio.kreader.android.reader.ReaderViewModel
 import org.readium.r2.shared.publication.Locator
 

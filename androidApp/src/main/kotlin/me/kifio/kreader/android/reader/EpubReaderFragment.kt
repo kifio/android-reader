@@ -11,8 +11,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.res.ResourcesCompat
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commitNow
 import me.kifio.kreader.android.R
 import org.readium.r2.navigator.ExperimentalDecorator

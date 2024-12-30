@@ -10,9 +10,8 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.OpenableColumns
-import org.readium.r2.shared.extensions.tryOrNull
 import java.io.File
-import java.util.*
+import java.util.UUID
 
 fun Uri.copyToLocalFile(context: Context): File? {
     val filename = getNameFromURI(context, this)
