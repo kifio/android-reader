@@ -191,6 +191,8 @@ class ReaderViewModel(
             val totalCount: Int,
             val totalProgress: Double
         ) : FragmentEvent()
+
+        data object OpenSettings : FragmentEvent()
     }
 
     sealed class ActivityEvent {

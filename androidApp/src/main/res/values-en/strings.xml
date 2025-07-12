@@ -12,4 +12,11 @@
     <string name="publication_opening_error">Cannot open book. Please, delete it and add again.</string>
     <string name="bookmarks_placeholder">You din\'t add any bookmarks yet</string>
     <string name="contents_placeholder">This book has no table of contents</string>
+    <string name="system">System</string>
+    <string name="parchment">Parchment</string>
+    <string name="mist">Mist</string>
+    <string name="onyx">Onyx</string>
+    <string name="twilight">Twilight</string>
+    <string name="moss">Moss</string>
+    <string name="themes_title">Text and background colors</string>
 </resources>

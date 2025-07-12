@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="delete_bookmark_icon_margin">8dp</dimen>
+    <dimen name="settings_color_corner_radius">8dp</dimen>
+    <dimen name="settings_color_border_width">1dp</dimen>
 </resources>

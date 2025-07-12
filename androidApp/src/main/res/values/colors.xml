@@ -3,4 +3,10 @@
     <color name="background">@android:color/white</color>
     <color name="primary">@android:color/black</color>
     <color name="secondary">#FF888888</color>
+    <color name="pearl">#FAFAFA</color>
+    <color name="parchment">#FFF4E6</color>
+    <color name="mist">#F0F0F0</color>
+    <color name="onyx">#121212</color>
+    <color name="twilight">#1E1E2E</color>
+    <color name="moss">#0D1B0D</color>
 </resources>

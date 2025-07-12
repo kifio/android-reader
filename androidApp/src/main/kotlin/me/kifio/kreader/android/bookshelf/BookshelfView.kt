@@ -205,7 +205,7 @@ fun BookshelfContent(
                 state = dismissState,
                 directions = setOf(DismissDirection.EndToStart),
                 dismissThresholds = { FractionalThreshold(0.2f) },
-                modifier = Modifier.animateItemPlacement(),
+                modifier = Modifier.animateItem(),
                 background = {
 
                     val color by animateColorAsState(

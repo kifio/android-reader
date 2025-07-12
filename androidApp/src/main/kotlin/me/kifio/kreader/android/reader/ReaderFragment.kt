@@ -1,5 +1,8 @@
 package me.kifio.kreader.android.reader
 
+import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.PointF
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,8 +13,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.ColorRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.MenuProvider
+import androidx.core.view.children
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -19,6 +25,7 @@ import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -26,6 +33,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import me.kifio.kreader.android.R
 import me.kifio.kreader.android.databinding.FragmentReaderBinding
+import me.kifio.kreader.android.reader.ReaderViewModel.ActivityEvent.OpenContents
 import org.readium.r2.navigator.Navigator
 import org.readium.r2.navigator.NavigatorDelegate
 import org.readium.r2.navigator.VisualNavigator
@@ -34,18 +42,20 @@ import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
 
 abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorDelegate {
-
     companion object {
         const val FRAGMENT_REQUEST_KEY = "READER_FRAGMENT_REQUEST"
     }
 
     protected val model: ReaderViewModel by activityViewModels()
     protected var navigator: Navigator? = null
-
     private var edgeTapNavigation: EdgeTapNavigation? = null
     private var navigatorFlow: Flow<Locator>? = null
     private var navigatorFlowJob: Job? = null
     private lateinit var binding: FragmentReaderBinding
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<ConstraintLayout>
+    open fun selectColor(color: Int, textColor: Int) {
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -89,12 +99,43 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
             }
         }
 
+        bottomSheetBehavior = BottomSheetBehavior.from(binding.settingsDialog)
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN)
+
         binding.contents.setOnClickListener {
-            model.activityChannel.send(ReaderViewModel.ActivityEvent.OpenContents)
+            model.activityChannel.send(OpenContents)
         }
 
         binding.bookmarks.setOnClickListener {
             model.activityChannel.send(ReaderViewModel.ActivityEvent.OpenBookmarks)
+        }
+
+        binding.settings.setOnClickListener {
+            model.fragmentChannel.send(ReaderViewModel.FragmentEvent.OpenSettings)
+        }
+
+        binding.primary.setOnClickListener {
+            selectColor(resources.getColor(R.color.background, null), Color.BLACK)
+        }
+
+        binding.parchment.setOnClickListener {
+            selectColor(resources.getColor(R.color.parchment, null), Color.BLACK)
+        }
+
+        binding.mist.setOnClickListener {
+            selectColor(resources.getColor(R.color.mist, null), Color.BLACK)
+        }
+
+        binding.onyx.setOnClickListener {
+            selectColor(resources.getColor(R.color.onyx, null), Color.WHITE)
+        }
+
+        binding.twilight.setOnClickListener {
+            selectColor(resources.getColor(R.color.twilight, null), Color.WHITE)
+        }
+
+        binding.moss.setOnClickListener {
+            selectColor(resources.getColor(R.color.moss, null), Color.WHITE)
         }
 
         binding.navigateUp.setOnClickListener {
@@ -136,6 +177,14 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
                 is ReaderViewModel.FragmentEvent.UpdateCurrentPage -> {
                     updateProgressBar(event.totalProgress)
                     updateCurrentPage(event.currentPage, event.totalCount)
+                }
+                is ReaderViewModel.FragmentEvent.OpenSettings -> {
+                    bottomSheetBehavior.peekHeight = binding.settingsDialog.height
+                    if (bottomSheetBehavior.state == BottomSheetBehavior.STATE_HIDDEN) {
+                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED)
+                    } else {
+                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN)
+                    }
                 }
             }
         }
@@ -213,9 +262,12 @@ abstract class ReaderFragment : Fragment(), VisualNavigator.Listener, NavigatorD
             binding.appBar.isVisible = this
             binding.navigateUp.isVisible = this
             binding.bookmarks.isVisible = this
+            binding.settings.isVisible = this
             binding.contents.isVisible = this
             binding.bottomAppBar.isVisible = this
         }
+
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN)
     }
 
     private fun updateBookmarkIcon(icon: Int) {

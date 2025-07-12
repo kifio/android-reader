@@ -6,47 +6,50 @@
 
 package me.kifio.kreader.android.reader
 
+import android.annotation.SuppressLint
+import android.content.Context.MODE_PRIVATE
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.commitNow
 import me.kifio.kreader.android.R
 import org.readium.r2.navigator.ExperimentalDecorator
 import org.readium.r2.navigator.Navigator
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
-import org.readium.r2.navigator.epub.css.Color
-import org.readium.r2.navigator.epub.css.RsProperties
+import org.readium.r2.navigator.epub.EpubPreferences
+import org.readium.r2.navigator.epub.EpubSettings
+import org.readium.r2.navigator.preferences.Configurable
+import org.readium.r2.shared.ExperimentalReadiumApi
 
 @OptIn(ExperimentalDecorator::class)
 class EpubReaderFragment : ReaderFragment(), EpubNavigatorFragment.Listener {
 
+    companion object {
+        val PREFS_NAME = "me.kifio.kreader.epub"
+        val EPUB_BG_COLOR = "me.kifio.kreader.epub.bg_color"
+        val EPUB_TEXT_COLOR = "me.kifio.kreader.epub.text_color"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val prefs = context?.getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+
+        val defaultBackgroundColor = resources.getColor(R.color.background, null)
+        val defaultTextColor = resources.getColor(R.color.primary, null)
+
+        val backgroundColor = prefs?.getInt(EPUB_BG_COLOR, defaultBackgroundColor) ?: defaultBackgroundColor
+        val textColor = prefs?.getInt(EPUB_TEXT_COLOR, defaultTextColor) ?: defaultTextColor
 
         childFragmentManager.fragmentFactory =
             EpubNavigatorFragment.createFactory(
                 publication = model.publication,
                 initialLocator = model.locator,
                 listener = this,
-                config = EpubNavigatorFragment.Configuration(
-                    readiumCssRsProperties = RsProperties(
-                        textColor = Color.Int(
-                            ResourcesCompat.getColor(
-                                resources,
-                                R.color.primary,
-                                null
-                            )
-                        ),
-                        backgroundColor = Color.Int(
-                            ResourcesCompat.getColor(
-                                resources,
-                                R.color.background,
-                                null
-                            )
-                        ),
-                    )
+                initialPreferences = EpubPreferences(
+                    backgroundColor = org.readium.r2.navigator.preferences.Color(backgroundColor),
+                    textColor = org.readium.r2.navigator.preferences.Color(textColor)
                 )
             )
     }
@@ -74,5 +77,28 @@ class EpubReaderFragment : ReaderFragment(), EpubNavigatorFragment.Listener {
 
         navigator = childFragmentManager.findFragmentByTag(navigatorFragmentTag) as Navigator
         return view
+    }
+
+    @SuppressLint("CommitPrefEdits")
+    @OptIn(ExperimentalReadiumApi::class)
+    override fun selectColor(color: Int, textColor: Int) {
+        super.selectColor(color, textColor)
+
+// FIXME:
+//  1) Создать темы с нужными primary и background цветами
+//  2) Вместо цветов передавать сюда id темы и делать activity?.recreate()
+
+        val epubPreferences = EpubPreferences(
+            backgroundColor = org.readium.r2.navigator.preferences.Color(color),
+            textColor = org.readium.r2.navigator.preferences.Color(textColor)
+        )
+
+        context?.getSharedPreferences(PREFS_NAME, MODE_PRIVATE)?.edit()?.let {
+            it.putInt(EPUB_BG_COLOR, color)
+            it.putInt(EPUB_TEXT_COLOR, textColor)
+            it.apply()
+        }
+
+        (navigator as Configurable<EpubSettings, EpubPreferences>).submitPreferences(epubPreferences)
     }
 }

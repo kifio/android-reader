@@ -12,4 +12,11 @@
     <string name="publication_opening_error">Не удалось открыть публикацию</string>
     <string name="bookmarks_placeholder">Вы пока не добавили никаких закладок</string>
     <string name="contents_placeholder">В этой книге нет оглавления</string>
+    <string name="system">Системный</string>
+    <string name="parchment">Пергамент</string>
+    <string name="mist">Туман</string>
+    <string name="onyx">Оникс</string>
+    <string name="twilight">Сумерки</string>
+    <string name="moss">Лес</string>
+    <string name="themes_title">Цвета текста и фона</string>
 </resources>
